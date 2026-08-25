@@ -1,0 +1,91 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { FiBox, FiShoppingBag, FiAlertTriangle, FiDollarSign } from "react-icons/fi";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatCard, Card } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
+import { getErrorMessage } from "@/lib/api";
+import { dashboardService } from "@/services/meta.service";
+import { formatCurrency, formatDate } from "@/lib/utils";
+
+type DairyDashboard = {
+  itemWiseStock: { _id: string; currentQty: number; item: { name: string; minStockAlert: number } }[];
+  todayBillCount: number;
+  todaySalesAmount: number;
+  recentBills: { _id: string; billNo: string; date: string; grandTotal: number; customerName?: string }[];
+  lowStockItems: { _id: string; currentQty: number; item: { name: string; minStockAlert: number } }[];
+};
+
+export default function DairyHomePage() {
+  const toast = useToast();
+  const [data, setData] = useState<DairyDashboard | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    dashboardService
+      .getDairy()
+      .then((res) => setData(res.data.data))
+      .catch((err) => toast.error(getErrorMessage(err)))
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (loading) return <Spinner fullPage />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <PageHeader title="Dairy Dashboard" description="Your branch stock and sales overview" />
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard label="Today's Bills" value={data.todayBillCount} icon={<FiShoppingBag className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="Today's Sales" value={formatCurrency(data.todaySalesAmount)} icon={<FiDollarSign className="h-5 w-5" />} tone="emerald" />
+        <StatCard label="Items in Stock" value={data.itemWiseStock.length} icon={<FiBox className="h-5 w-5" />} tone="sky" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">Recent Bills</h2>
+          {data.recentBills.length ? (
+            <ul className="space-y-2">
+              {data.recentBills.map((b) => (
+                <li key={b._id} className="flex items-center justify-between text-sm">
+                  <span className="text-slate-600">
+                    #{b.billNo} — {b.customerName || "Walk-in"} — {formatDate(b.date)}
+                  </span>
+                  <span className="font-medium text-slate-800">{formatCurrency(b.grandTotal)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">No bills yet.</p>
+          )}
+          <Link href="/dairy/bills" className="mt-3 inline-block text-sm font-medium text-indigo-600 hover:underline">
+            View all bills →
+          </Link>
+        </Card>
+
+        <Card>
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">Low Stock Alerts</h2>
+          {data.lowStockItems.length ? (
+            <ul className="space-y-2">
+              {data.lowStockItems.map((s) => (
+                <li key={s._id} className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2 text-slate-600">
+                    <FiAlertTriangle className="h-3.5 w-3.5 text-amber-500" /> {s.item.name}
+                  </span>
+                  <span className="font-medium text-red-600">{s.currentQty} left</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">Stock levels are healthy.</p>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}
