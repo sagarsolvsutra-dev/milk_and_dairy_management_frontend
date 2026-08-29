@@ -21,7 +21,7 @@ export function formatDate(value: string | Date | undefined | null): string {
   if (!value) return "-";
   const d = new Date(value);
   if (isNaN(d.getTime())) return "-";
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 export function formatDateTime(value: string | Date | undefined | null): string {
@@ -30,7 +30,7 @@ export function formatDateTime(value: string | Date | undefined | null): string 
   if (isNaN(d.getTime())) return "-";
   return d.toLocaleString("en-IN", {
     day: "2-digit",
-    month: "short",
+    month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",

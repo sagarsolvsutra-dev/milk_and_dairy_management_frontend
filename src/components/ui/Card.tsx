@@ -11,11 +11,15 @@ export function StatCard({
   value,
   icon,
   tone = "indigo",
+  hint,
+  hintTone = "neutral",
 }: {
   label: string;
   value: React.ReactNode;
   icon?: React.ReactNode;
   tone?: "indigo" | "emerald" | "amber" | "sky" | "red";
+  hint?: React.ReactNode;
+  hintTone?: "neutral" | "emerald" | "red";
 }) {
   const toneStyles = {
     indigo: "bg-indigo-50 text-indigo-600",
@@ -25,12 +29,19 @@ export function StatCard({
     red: "bg-red-50 text-red-600",
   }[tone];
 
+  const hintStyles = {
+    neutral: "text-slate-400",
+    emerald: "text-emerald-600",
+    red: "text-red-600",
+  }[hintTone];
+
   return (
     <Card className="flex items-center gap-4">
       {icon && <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-lg", toneStyles)}>{icon}</div>}
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
         <p className="mt-0.5 text-xl font-semibold text-slate-900">{value}</p>
+        {hint && <p className={cn("mt-0.5 text-xs font-medium", hintStyles)}>{hint}</p>}
       </div>
     </Card>
   );

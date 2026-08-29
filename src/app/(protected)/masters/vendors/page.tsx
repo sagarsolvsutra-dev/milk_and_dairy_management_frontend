@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FiPlus } from "react-icons/fi";
 import { RowActions, LedgerAction, EditAction, ToggleStatusAction, DeleteAction } from "@/components/ui/RowActions";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -37,6 +37,7 @@ const emptyForm = {
 
 export default function VendorsPage() {
   const toast = useToast();
+  const router = useRouter();
   const { hasPermission } = useAuth();
   const canAdd = hasPermission("vendor", "add");
   const canEdit = hasPermission("vendor", "edit");
@@ -100,7 +101,7 @@ export default function VendorsPage() {
     const { errors: fieldErrors, isValid } = validate();
     setErrors(fieldErrors);
     if (!isValid) {
-      toast.error("Please fix the highlighted fields");
+      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
       return;
     }
     setSaving(true);
@@ -115,10 +116,10 @@ export default function VendorsPage() {
       };
       if (editing) {
         await vendorService.update(editing._id, payload);
-        toast.success("Vendor updated successfully");
+        toast.success("વેન્ડર સફળતાપૂર્વક અપડેટ થયું (Vendor updated successfully)");
       } else {
         await vendorService.create(payload);
-        toast.success("Vendor added successfully");
+        toast.success("વેન્ડર સફળતાપૂર્વક ઉમેરાયું (Vendor added successfully)");
       }
       setDialogOpen(false);
       refetch();
@@ -135,7 +136,9 @@ export default function VendorsPage() {
     setTogglingId(vendor._id);
     try {
       await vendorService.toggleStatus(vendor._id);
-      toast.success(`Vendor ${vendor.isActive ? "deactivated" : "activated"}`);
+      toast.success(
+        `વેન્ડર ${vendor.isActive ? "બંધ" : "ચાલુ"} કરાયું (Vendor ${vendor.isActive ? "deactivated" : "activated"})`
+      );
       refetch();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -151,7 +154,7 @@ export default function VendorsPage() {
     setDeleting(true);
     try {
       await vendorService.remove(deleteTarget._id);
-      toast.success("Vendor deleted");
+      toast.success("વેન્ડર કાઢી નાખ્યું (Vendor deleted)");
       setDeleteTarget(null);
       refetch();
     } catch (err) {
@@ -163,15 +166,15 @@ export default function VendorsPage() {
   };
 
   const columns: Column<Vendor>[] = [
-    { header: "Name", accessor: (v) => <span className="font-medium text-slate-900">{v.name}</span> },
-    { header: "Mobile", accessor: (v) => v.mobile },
+    { header: "નામ (Name)", accessor: (v) => <span className="font-medium text-slate-900">{v.name}</span> },
+    { header: "મોબાઇલ નંબર (Mobile)", accessor: (v) => v.mobile },
     {
-      header: "City",
+      header: "શહેર (City)",
       accessor: (v) => (typeof v.city === "object" && v.city ? v.city.name : "-"),
     },
-    { header: "Opening Bal.", accessor: (v) => formatCurrency(v.openingBalance) },
+    { header: "શરૂઆતની બાકી (Opening Bal.)", accessor: (v) => formatCurrency(v.openingBalance) },
     {
-      header: "Current Balance",
+      header: "હાલની બાકી (Current Balance)",
       accessor: (v) => (
         <span className={v.currentBalance > 0 ? "font-semibold text-red-600" : "font-semibold text-emerald-600"}>
           {formatCurrency(v.currentBalance)}
@@ -179,16 +182,14 @@ export default function VendorsPage() {
       ),
     },
     {
-      header: "Status",
-      accessor: (v) => <Badge tone={v.isActive ? "success" : "neutral"}>{v.isActive ? "Active" : "Inactive"}</Badge>,
+      header: "સ્થિતિ (Status)",
+      accessor: (v) => <Badge tone={v.isActive ? "success" : "neutral"}>{v.isActive ? "ચાલુ (Active)" : "બંધ (Inactive)"}</Badge>,
     },
     {
-      header: "Actions",
+      header: "ક્રિયા (Actions)",
       accessor: (v) => (
         <RowActions>
-          <Link href={`/masters/vendors/${v._id}/ledger`}>
-            <LedgerAction onClick={() => {}} />
-          </Link>
+          <LedgerAction onClick={() => router.push(`/masters/vendors/${v._id}/ledger`)} />
           {canEdit && <EditAction onClick={() => openEdit(v)} />}
           {canEdit && (
             <ToggleStatusAction active={v.isActive} disabled={togglingId === v._id} onClick={() => handleToggleStatus(v)} />
@@ -202,87 +203,87 @@ export default function VendorsPage() {
   return (
     <div>
       <PageHeader
-        title="Vendors"
-        description="Manage milk suppliers and their balances"
+        title="વેન્ડર (Vendors)"
+        description="દૂધ સપ્લાયરો અને તેમની બાકી રકમનું સંચાલન કરો (Manage milk suppliers and their balances)"
         actions={
           canAdd ? (
             <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
-              Add Vendor
+              વેન્ડર ઉમેરો (Add Vendor)
             </Button>
           ) : undefined
         }
       />
 
       <div className="mb-4">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search by name, mobile, address..." />
+        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="નામ, મોબાઇલ, સરનામાથી શોધો... (Search by name, mobile, address...)" />
       </div>
 
-      <Table columns={columns} data={items} keyField={(v) => v._id} loading={loading} emptyMessage="No vendors added yet" />
+      <Table columns={columns} data={items} keyField={(v) => v._id} loading={loading} emptyMessage="હજુ કોઈ વેન્ડર ઉમેર્યું નથી (No vendors added yet)" />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editing ? "Edit Vendor" : "Add Vendor"}
+        title={editing ? "વેન્ડર ફેરફાર કરો (Edit Vendor)" : "વેન્ડર ઉમેરો (Add Vendor)"}
         size="lg"
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              રદ કરો (Cancel)
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editing ? "Save Changes" : "Add Vendor"}
+              {editing ? "ફેરફાર સેવ કરો (Save Changes)" : "વેન્ડર ઉમેરો (Add Vendor)"}
             </Button>
           </>
         }
       >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="Vendor Name"
+            label="વેન્ડરનું નામ (Vendor Name)"
             required
             error={errors.name}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <Input
-            label="Mobile Number"
+            label="મોબાઇલ નંબર (Mobile Number)"
             required
             inputMode="numeric"
             maxLength={10}
             error={errors.mobile}
-            hint="10-digit mobile number"
+            hint="10 અંકનો મોબાઇલ નંબર (10-digit mobile number)"
             value={form.mobile}
             onChange={(e) => setForm({ ...form, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
           />
           <Input
-            label="Address"
+            label="સરનામું (Address)"
             wrapperClassName="sm:col-span-2"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
           />
           <Select
-            label="City"
+            label="શહેર (City)"
             options={cities.map((c) => ({ label: c.name, value: c._id }))}
             value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })}
           />
           <Input
-            label="Opening Balance"
+            label="શરૂઆતની બાકી (Opening Balance)"
             type="number"
             step="0.01"
             disabled={Boolean(editing)}
-            hint={editing ? "Opening balance can't be changed after creation" : undefined}
+            hint={editing ? "બનાવ્યા પછી શરૂઆતની બાકી બદલી શકાતી નથી (Opening balance can't be changed after creation)" : undefined}
             value={form.openingBalance}
             onChange={(e) => setForm({ ...form, openingBalance: e.target.value })}
           />
-          <Input label="Bank Account No." value={form.accountNo} onChange={(e) => setForm({ ...form, accountNo: e.target.value })} />
+          <Input label="બેંક ખાતા નંબર (Bank Account No.)" value={form.accountNo} onChange={(e) => setForm({ ...form, accountNo: e.target.value })} />
           <Input
-            label="IFSC Code"
+            label="IFSC કોડ (IFSC Code)"
             error={errors.ifsc}
             value={form.ifsc}
             onChange={(e) => setForm({ ...form, ifsc: e.target.value.toUpperCase() })}
           />
-          <Input label="Bank Name" value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} />
+          <Input label="બેંકનું નામ (Bank Name)" value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} />
         </form>
       </Dialog>
 
@@ -291,9 +292,9 @@ export default function VendorsPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         loading={deleting}
-        title="Delete Vendor"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This cannot be undone.`}
-        confirmLabel="Delete"
+        title="વેન્ડર કાઢી નાખો (Delete Vendor)"
+        description={`શું તમે ખરેખર "${deleteTarget?.name}" ને કાઢી નાખવા માંગો છો? આ પાછું લાવી શકાશે નહીં. (Are you sure you want to delete "${deleteTarget?.name}"? This cannot be undone.)`}
+        confirmLabel="કાઢી નાખો (Delete)"
       />
     </div>
   );

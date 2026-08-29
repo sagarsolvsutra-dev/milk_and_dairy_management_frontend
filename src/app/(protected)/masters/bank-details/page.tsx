@@ -9,36 +9,37 @@ export default function BankDetailsPage() {
     <SimpleMasterManager
       endpoint={API_ENDPOINTS.MASTER_BANK_DETAILS}
       module="bank_detail"
-      title="Bank Details"
-      description="Company bank account details shown on bill footers"
-      addLabel="Add Bank Detail"
+      title="બેંક વિગત (Bank Details)"
+      singularLabel="બેંક વિગત (Bank Detail)"
+      description="બિલની નીચે દર્શાવાતી કંપનીની બેંક ખાતાની વિગત (Company bank account details shown on bill footers)"
+      addLabel="બેંક વિગત ઉમેરો (Add Bank Detail)"
       hasToggle={false}
-      searchPlaceholder="Search bank details..."
+      searchPlaceholder="બેંક વિગત શોધો... (Search bank details...)"
       fields={[
-        { name: "accountName", label: "Account Name", required: true, span: 2 },
+        { name: "accountName", label: "ખાતાધારકનું નામ (Account Name)", required: true, span: 2 },
         {
           name: "accountNo",
-          label: "Account Number",
+          label: "ખાતા નંબર (Account Number)",
           required: true,
           transform: (v) => v.replace(/\D/g, ""),
-          validate: (v) => (v.length < 9 || v.length > 18 ? "Account number must be 9 to 18 digits" : undefined),
+          validate: (v) => (v.length < 9 || v.length > 18 ? "ખાતા નંબર 9 થી 18 અંકનો હોવો જોઈએ (Account number must be 9 to 18 digits)" : undefined),
         },
         {
           name: "ifsc",
-          label: "IFSC Code",
+          label: "IFSC કોડ (IFSC Code)",
           required: true,
-          hint: "e.g. SBIN0001234",
+          hint: "દા.ત. SBIN0001234 (e.g. SBIN0001234)",
           transform: (v) => v.toUpperCase(),
           validate: (v) => validateIfsc(v),
         },
-        { name: "bankName", label: "Bank Name", required: true, validate: (v) => validateMinLength(v.trim(), 2, "Bank name") },
-        { name: "branch", label: "Branch" },
+        { name: "bankName", label: "બેંકનું નામ (Bank Name)", required: true, validate: (v) => validateMinLength(v.trim(), 2, "Bank name") },
+        { name: "branch", label: "શાખા (Branch)" },
         { name: "upiId", label: "UPI ID" },
       ]}
       displayColumns={[
-        { header: "Account Name", render: (row) => <span className="font-medium text-slate-900">{String(row.accountName)}</span> },
-        { header: "Account No.", render: (row) => String(row.accountNo) },
-        { header: "Bank", render: (row) => String(row.bankName) },
+        { header: "ખાતાધારકનું નામ (Account Name)", render: (row) => <span className="font-medium text-slate-900">{String(row.accountName)}</span> },
+        { header: "ખાતા નંબર (Account No.)", render: (row) => String(row.accountNo) },
+        { header: "બેંક (Bank)", render: (row) => String(row.bankName) },
         { header: "IFSC", render: (row) => String(row.ifsc) },
       ]}
     />

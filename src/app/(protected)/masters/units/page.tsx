@@ -9,23 +9,24 @@ export default function UnitsPage() {
     <SimpleMasterManager
       endpoint={API_ENDPOINTS.MASTER_UNITS}
       module="unit"
-      title="Units"
-      description="Manage measurement units (KG, Litre, Nos, Packet)"
-      addLabel="Add Unit"
-      searchPlaceholder="Search units..."
+      title="એકમ (Units)"
+      singularLabel="એકમ (Unit)"
+      description="માપનનાં એકમો સંભાળો (KG, લિટર, નંગ, પેકેટ) (Manage measurement units (KG, Litre, Nos, Packet))"
+      addLabel="એકમ ઉમેરો (Add Unit)"
+      searchPlaceholder="એકમ શોધો... (Search units...)"
       fields={[
         {
           name: "name",
-          label: "Unit Name",
+          label: "એકમનું નામ (Unit Name)",
           required: true,
-          placeholder: "e.g. Kilogram",
+          placeholder: "દા.ત. કિલોગ્રામ (e.g. Kilogram)",
           validate: (v) => validateMinLength(v.trim(), 2, "Unit name"),
         },
-        { name: "shortCode", label: "Short Code", required: true, placeholder: "e.g. KG" },
+        { name: "shortCode", label: "ટૂંકો કોડ (Short Code)", required: true, placeholder: "દા.ત. KG (e.g. KG)" },
       ]}
       displayColumns={[
-        { header: "Name", render: (row) => <span className="font-medium text-slate-900">{String(row.name)}</span> },
-        { header: "Short Code", render: (row) => String(row.shortCode) },
+        { header: "નામ (Name)", render: (row) => <span className="font-medium text-slate-900">{String(row.name)}</span> },
+        { header: "ટૂંકો કોડ (Short Code)", render: (row) => String(row.shortCode) },
       ]}
     />
   );

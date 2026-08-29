@@ -11,6 +11,9 @@ export const API_ENDPOINTS = {
   // Auth
   LOGIN: "/auth/login",
   LOGOUT: "/auth/logout",
+  AUTH_ME: "/auth/me",
+  AUTH_CHANGE_PASSWORD: "/auth/change-password",
+  AUTH_REFRESH: "/auth/refresh",
 
   // Vendors
   VENDORS: "/vendors",
@@ -61,12 +64,13 @@ export const API_ENDPOINTS = {
   USER_TOGGLE_STATUS: (id: string) => `/users/${id}/toggle-status`,
   USER_RESET_PASSWORD: (id: string) => `/users/${id}/reset-password`,
 
-  // Masters (Units, GST Slabs, Cities, Bank Details, Terms — same REST shape)
+  // Masters (Units, GST Slabs, Cities, Bank Details, Terms, WhatsApp Tokens — same REST shape)
   MASTER_UNITS: "/masters/units",
   MASTER_GST_SLABS: "/masters/gst-slabs",
   MASTER_CITIES: "/masters/cities",
   MASTER_BANK_DETAILS: "/masters/bank-details",
   MASTER_TERMS: "/masters/terms",
+  MASTER_WHATSAPP_TOKENS: "/masters/whatsapp-tokens",
 
   // Inventory
   INVENTORY_MILK_STOCK: "/inventory/milk-stock",
@@ -74,6 +78,9 @@ export const API_ENDPOINTS = {
   INVENTORY_DAIRY_COMPARISON: "/inventory/dairy-comparison",
   INVENTORY_RECONCILIATION: "/inventory/reconciliation",
   INVENTORY_DAIRY_STOCK: "/inventory/dairy-stock",
+  INVENTORY_CONSOLIDATED_STOCK: "/inventory/consolidated-stock",
+  INVENTORY_STOCK_TRACE: (itemId: string) => `/inventory/trace/${itemId}`,
+  INVENTORY_ADJUSTMENTS: "/inventory/adjustments",
 
   // Reports
   REPORT: (key: string) => `/reports/${key}`,
@@ -81,6 +88,9 @@ export const API_ENDPOINTS = {
   // Meta / Misc
   PERMISSION_MODULES: "/meta/permission-modules",
   NOTIFICATIONS: "/notifications",
+  NOTIFICATION_MARK_READ: (id: string) => `/notifications/${id}/read`,
+  NOTIFICATION_MARK_ALL_READ: "/notifications/read-all",
   DASHBOARD_SUPER_ADMIN: "/dashboard/super-admin",
   DASHBOARD_DAIRY: "/dashboard/dairy",
+  DASHBOARD_ANALYTICS: "/dashboard/analytics",
 } as const;

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { FiPlus, FiTrash2, FiTruck, FiBox } from "react-icons/fi";
 import { RowActions, ViewAction, EditAction, CancelAction } from "@/components/ui/RowActions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { DateRangeFilter } from "@/components/ui/DateRangeFilter";
 import { Table, type Column } from "@/components/ui/Table";
 import { Pagination } from "@/components/ui/Pagination";
 import { Badge } from "@/components/ui/Badge";
@@ -21,6 +23,7 @@ import { getErrorMessage } from "@/lib/api";
 import { dispatchService } from "@/services/dispatch.service";
 import { itemService } from "@/services/item.service";
 import { dairyService } from "@/services/dairy.service";
+import { inventoryService } from "@/services/inventory.service";
 import { formatDate, toDateInputValue } from "@/lib/utils";
 import { validateRequired } from "@/lib/validators";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,6 +39,8 @@ export default function DispatchPage() {
   const canDelete = hasPermission("dispatch", "delete");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   type DispatchSummary = { count: number; totalItemsDispatched: number };
   const {
     items: dispatches,
@@ -44,13 +49,27 @@ export default function DispatchPage() {
     summary,
     loading,
     refetch,
-  } = usePaginatedList<DispatchEntry, DispatchSummary>("/dispatch", { search, page });
+  } = usePaginatedList<DispatchEntry, DispatchSummary>("/dispatch", { search, page, extraParams: { from, to } });
 
   const [items, setItems] = useState<Item[]>([]);
   const [dairies, setDairies] = useState<Dairy[]>([]);
+  const [centralStock, setCentralStock] = useState<Record<string, number>>({});
+  const refreshCentralStock = () => {
+    // This builds a lookup map for every item, not a paginated view — pass a
+    // high limit to get everything in one call rather than one page's worth.
+    inventoryService
+      .getCentralItemStock({ limit: 1000 })
+      .then((res) => {
+        const map: Record<string, number> = {};
+        for (const s of res.data.data.items) map[s.item?._id || s.item] = s.currentQty;
+        setCentralStock(map);
+      })
+      .catch(() => {});
+  };
   useEffect(() => {
     itemService.listActive().then((res) => setItems(res.data.data.items)).catch(() => {});
     dairyService.listActive().then((res) => setDairies(res.data.data.items)).catch(() => {});
+    refreshCentralStock();
   }, []);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -71,6 +90,7 @@ export default function DispatchPage() {
   const cancellingRef = useRef(false);
 
   const openCreate = () => {
+    refreshCentralStock();
     setEditTarget(null);
     setDate(toDateInputValue(new Date()));
     setDairy("");
@@ -84,15 +104,16 @@ export default function DispatchPage() {
   };
 
   const openEdit = (d: DispatchEntry) => {
+    refreshCentralStock();
     setEditTarget(d);
     setDate(toDateInputValue(d.date));
-    setDairy(typeof d.dairy === "object" ? d.dairy._id : d.dairy);
+    setDairy(typeof d.dairy === "object" && d.dairy ? d.dairy._id : (d.dairy as string) || "");
     setVehicleNo(d.vehicleNo || "");
     setDriverName(d.driverName || "");
     setRemark(d.remark || "");
     setRows(
       d.items.map((row) => ({
-        item: typeof row.item === "object" ? row.item._id : row.item,
+        item: typeof row.item === "object" && row.item ? row.item._id : (row.item as string) || "",
         quantity: String(row.quantity),
       }))
     );
@@ -107,14 +128,32 @@ export default function DispatchPage() {
   const addRow = () => setRows((prev) => [...prev, { item: "", quantity: "" }]);
   const removeRow = (index: number) => setRows((prev) => prev.filter((_, i) => i !== index));
 
+  // Same item can appear on more than one row — combine what's actually
+  // being requested per item so the live "In Stock" hint (and the red
+  // over-limit state) reflects the real total, not just one row in isolation.
+  const requestedByItem = useMemo(() => {
+    const totals: Record<string, number> = {};
+    rows.forEach((r) => {
+      if (r.item && Number(r.quantity) > 0) totals[r.item] = (totals[r.item] || 0) + Number(r.quantity);
+    });
+    return totals;
+  }, [rows]);
+
   const validateRows = () => {
     const nextErrors: Record<number, string> = {};
     const filledRows = rows.filter((r) => r.item || r.quantity);
     if (!filledRows.length) return { errors: nextErrors, isValid: false, blank: true };
+
     rows.forEach((r, i) => {
       if (!r.item && !r.quantity) return;
-      if (!r.item) nextErrors[i] = "Select an item";
-      else if (!r.quantity || Number(r.quantity) <= 0) nextErrors[i] = "Quantity must be greater than 0";
+      if (!r.item) nextErrors[i] = "આઇટમ પસંદ કરો (Select an item)";
+      else if (!r.quantity || Number(r.quantity) <= 0) nextErrors[i] = "જથ્થો 0 કરતાં વધારે હોવો જોઈએ (Quantity must be greater than 0)";
+      // Only enforced on create — editing an existing dispatch changes what
+      // "available" means (some of this item is already committed to it),
+      // so the hint below still shows but doesn't hard-block here.
+      else if (!editTarget && requestedByItem[r.item] > (centralStock[r.item] ?? 0)) {
+        nextErrors[i] = `મુખ્ય સ્ટોકમાં ફક્ત ${centralStock[r.item] ?? 0} ઉપલબ્ધ છે (Only ${centralStock[r.item] ?? 0} available in central stock)`;
+      }
     });
     return { errors: nextErrors, isValid: Object.keys(nextErrors).length === 0, blank: false };
   };
@@ -132,11 +171,11 @@ export default function DispatchPage() {
       return;
     }
     if (blank) {
-      toast.warning("Add at least one item with quantity");
+      toast.warning("ઓછામાં ઓછી એક આઇટમ જથ્થા સાથે ઉમેરો (Add at least one item with quantity)");
       return;
     }
     if (!isValid) {
-      toast.error("Please fix the highlighted rows");
+      toast.error("લાલ બતાવેલ પંક્તિઓ સુધારો (Please fix the highlighted rows)");
       return;
     }
     const validRows = rows.filter((r) => r.item && Number(r.quantity) > 0);
@@ -153,13 +192,14 @@ export default function DispatchPage() {
       };
       if (editTarget) {
         await dispatchService.update(editTarget._id, payload);
-        toast.success("Dispatch entry updated");
+        toast.success("ડિસ્પેચ એન્ટ્રી અપડેટ થઈ (Dispatch entry updated)");
       } else {
         await dispatchService.create(payload);
-        toast.success("Dispatch entry saved successfully");
+        toast.success("ડિસ્પેચ એન્ટ્રી સફળતાપૂર્વક સેવ થઈ (Dispatch entry saved successfully)");
       }
       setDialogOpen(false);
       refetch();
+      refreshCentralStock();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -174,7 +214,7 @@ export default function DispatchPage() {
     setCancelling(true);
     try {
       await dispatchService.cancel(cancelTarget._id);
-      toast.success("Dispatch entry cancelled");
+      toast.success("ડિસ્પેચ એન્ટ્રી રદ થઈ (Dispatch entry cancelled)");
       setCancelTarget(null);
       refetch();
     } catch (err) {
@@ -186,17 +226,40 @@ export default function DispatchPage() {
   };
 
   const columns: Column<DispatchEntry>[] = [
-    { header: "Date", accessor: (d) => formatDate(d.date) },
-    { header: "Dispatch No.", accessor: (d) => <span className="font-mono text-xs">{d.dispatchNo}</span> },
-    { header: "Dairy", accessor: (d) => (typeof d.dairy === "object" ? d.dairy.name : "-") },
-    { header: "Items", accessor: (d) => d.items.length },
-    { header: "Vehicle No.", accessor: (d) => d.vehicleNo || "-" },
+    { header: "તારીખ (Date)", accessor: (d) => formatDate(d.date) },
+    { header: "ડિસ્પેચ નંબર (Dispatch No.)", accessor: (d) => <span className="font-mono text-xs">{d.dispatchNo}</span> },
     {
-      header: "Status",
-      accessor: (d) => <Badge tone={d.status === "active" ? "success" : "danger"}>{d.status}</Badge>,
+      header: "ડેરી (Dairy)",
+      primary: true,
+      accessor: (d) =>
+        typeof d.dairy === "object" && d.dairy ? (
+          <Link
+            href={`/inventory/dairy/${d.dairy._id}`}
+            className="font-medium text-indigo-600 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+            title="આ ડેરીનો સંપૂર્ણ સ્ટોક, ડિસ્પેચ અને બિલ ઇતિહાસ જુઓ (View this dairy's full stock, dispatch and bill history)"
+          >
+            {d.dairy.name}
+          </Link>
+        ) : (
+          "-"
+        ),
     },
     {
-      header: "Actions",
+      header: "આઇટમ (Items)",
+      accessor: (d) => (
+        <span className="whitespace-normal">
+          {d.items.map((row) => (typeof row.item === "object" && row.item ? row.item.name : "-") + ` (${row.quantity})`).join(", ")}
+        </span>
+      ),
+    },
+    { header: "વાહન નંબર (Vehicle No.)", accessor: (d) => d.vehicleNo || "-" },
+    {
+      header: "સ્થિતિ (Status)",
+      accessor: (d) => <Badge tone={d.status === "active" ? "success" : "danger"}>{d.status === "active" ? "ચાલુ (Active)" : "રદ (Cancelled)"}</Badge>,
+    },
+    {
+      header: "ક્રિયા (Actions)",
       accessor: (d) => (
         <RowActions>
           <ViewAction onClick={() => setViewing(d)} />
@@ -210,123 +273,158 @@ export default function DispatchPage() {
   return (
     <div>
       <PageHeader
-        title="Dairy-wise Dispatch"
-        description="Allocate items from central stock to dairy branches"
+        title="ડેરી પ્રમાણે ડિસ્પેચ (Dairy-wise Dispatch)"
+        description="મુખ્ય સ્ટોકમાંથી આઇટમ ડેરી શાખાઓમાં ફાળવો (Allocate items from central stock to dairy branches)"
         actions={
           canAdd ? (
             <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
-              New Dispatch
+              નવો ડિસ્પેચ (New Dispatch)
             </Button>
           ) : undefined
         }
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <StatCard label="Total Dispatches" value={summary?.count ?? 0} icon={<FiTruck className="h-5 w-5" />} tone="indigo" />
-        <StatCard label="Total Items Dispatched" value={summary?.totalItemsDispatched ?? 0} icon={<FiBox className="h-5 w-5" />} tone="sky" />
+        <StatCard label="કુલ ડિસ્પેચ (Total Dispatches)" value={summary?.count ?? 0} icon={<FiTruck className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="કુલ ડિસ્પેચ થયેલ આઇટમ (Total Items Dispatched)" value={summary?.totalItemsDispatched ?? 0} icon={<FiBox className="h-5 w-5" />} tone="sky" />
       </div>
 
-      <div className="mb-4">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search by dispatch no, dairy, item, vehicle, driver, status, remark..." />
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="ડિસ્પેચ નંબર, ડેરી, આઇટમ, વાહન, ડ્રાઈવર, સ્થિતિ, નોંધથી શોધો... (Search by dispatch no, dairy, item, vehicle, driver, status, remark...)" />
+        <DateRangeFilter
+          from={from}
+          to={to}
+          onFromChange={(v) => { setFrom(v); setPage(1); }}
+          onToChange={(v) => { setTo(v); setPage(1); }}
+          onClear={() => { setFrom(""); setTo(""); setPage(1); }}
+        />
       </div>
 
-      <Table columns={columns} data={dispatches} keyField={(d) => d._id} loading={loading} emptyMessage="No dispatch entries yet" />
+      <Table columns={columns} data={dispatches} keyField={(d) => d._id} loading={loading} emptyMessage="હજુ કોઈ ડિસ્પેચ એન્ટ્રી નથી (No dispatch entries yet)" />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editTarget ? `Edit Dispatch ${editTarget.dispatchNo}` : "New Dispatch Entry"}
+        title={editTarget ? `ડિસ્પેચ ફેરફાર (Edit Dispatch) ${editTarget.dispatchNo}` : "નવી ડિસ્પેચ એન્ટ્રી (New Dispatch Entry)"}
         size="lg"
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              રદ કરો (Cancel)
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editTarget ? "Save Changes" : "Save Dispatch"}
+              {editTarget ? "ફેરફાર સેવ કરો (Save Changes)" : "ડિસ્પેચ સેવ કરો (Save Dispatch)"}
             </Button>
           </>
         }
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Dispatch Date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input label="ડિસ્પેચની તારીખ (Dispatch Date)" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
             <Select
-              label="Dairy"
+              label="ડેરી (Dairy)"
               required
               error={dairyError}
               options={dairies.map((d) => ({ label: `${d.name} (${d.code})`, value: d._id }))}
               value={dairy}
               onChange={(e) => setDairy(e.target.value)}
             />
-            <Input label="Vehicle No. (optional)" value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value)} />
-            <Input label="Driver Name (optional)" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+            <Input label="વાહન નંબર - વૈકલ્પિક (Vehicle No., optional)" value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value)} />
+            <Input label="ડ્રાઈવરનું નામ - વૈકલ્પિક (Driver Name, optional)" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-700">Items to Dispatch</p>
+            <p className="text-sm font-medium text-slate-700">ડિસ્પેચ કરવાની આઇટમ (Items to Dispatch)</p>
             <div className="flex items-start gap-2">
-              <p className="flex-[2] text-xs font-medium text-slate-500">Item</p>
-              <p className="flex-1 text-xs font-medium text-slate-500">Quantity</p>
+              <p className="flex-[2] text-xs font-medium text-slate-500">આઇટમ (Item)</p>
+              <p className="w-28 shrink-0 text-xs font-medium text-slate-500">જથ્થો (Quantity)</p>
+              <p className="w-28 shrink-0 text-xs font-medium text-slate-500">સ્ટોકમાં (In Stock)</p>
               <span className="w-9 shrink-0" aria-hidden="true" />
             </div>
-            {rows.map((row, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <Select
-                  wrapperClassName="flex-[2]"
-                  options={items.map((it) => ({ label: `${it.name} (${it.code})`, value: it._id }))}
-                  value={row.item}
-                  onChange={(e) => updateRow(i, { item: e.target.value })}
-                  placeholder="Select item"
-                  error={rowErrors[i]}
-                />
-                <Input
-                  wrapperClassName="flex-1"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="Quantity"
-                  value={row.quantity}
-                  onChange={(e) => updateRow(i, { quantity: e.target.value })}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mt-0.5"
-                  onClick={() => removeRow(i)}
-                  disabled={rows.length === 1}
-                >
-                  <FiTrash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </div>
-            ))}
+            {rows.map((row, i) => {
+              const available = row.item ? centralStock[row.item] ?? 0 : null;
+              // Live, not just on submit — and only enforced as "over" on create,
+              // same reasoning as the submit-time check (edit's true ceiling differs).
+              const requested = row.item ? requestedByItem[row.item] ?? 0 : 0;
+              const overLimit = !editTarget && available !== null && requested > available;
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <Select
+                    wrapperClassName="flex-[2]"
+                    options={items.map((it) => ({ label: `${it.name} (${it.code})`, value: it._id }))}
+                    value={row.item}
+                    onChange={(e) => updateRow(i, { item: e.target.value })}
+                    placeholder="આઇટમ પસંદ કરો (Select item)"
+                    error={rowErrors[i]}
+                  />
+                  <Input
+                    wrapperClassName="w-28 shrink-0"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="જથ્થો (Quantity)"
+                    value={row.quantity}
+                    onChange={(e) => updateRow(i, { quantity: e.target.value })}
+                  />
+                  <div
+                    className={`mt-1 flex h-9.5 w-28 shrink-0 flex-col items-center justify-center rounded-lg border px-1 text-center leading-tight ${
+                      available === null
+                        ? "border-slate-100 text-slate-300"
+                        : overLimit || available <= 0
+                          ? "border-red-200 bg-red-50 text-red-600"
+                          : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                    }`}
+                  >
+                    {available === null ? (
+                      <span className="text-xs">—</span>
+                    ) : (
+                      <>
+                        <span className="text-base font-bold">{available}</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide">
+                          {available <= 0 ? "સ્ટોક ખાલી (Out of stock)" : overLimit ? "પૂરતું નથી (Not enough)" : "સ્ટોકમાં (In stock)"}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="mt-0.5"
+                    onClick={() => removeRow(i)}
+                    disabled={rows.length === 1}
+                  >
+                    <FiTrash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              );
+            })}
             <Button type="button" variant="outline" size="sm" icon={<FiPlus className="h-3.5 w-3.5" />} onClick={addRow}>
-              Add Item
+              આઇટમ ઉમેરો (Add Item)
             </Button>
           </div>
 
-          <Textarea label="Remark" value={remark} onChange={(e) => setRemark(e.target.value)} />
+          <Textarea label="નોંધ (Remark)" value={remark} onChange={(e) => setRemark(e.target.value)} />
         </form>
       </Dialog>
 
-      <Dialog open={Boolean(viewing)} onClose={() => setViewing(null)} title={`Dispatch ${viewing?.dispatchNo || ""}`} size="md">
+      <Dialog open={Boolean(viewing)} onClose={() => setViewing(null)} title={`ડિસ્પેચ (Dispatch) ${viewing?.dispatchNo || ""}`} size="md">
         {viewing && (
           <div className="space-y-3 text-sm">
             <p className="text-slate-500">
-              To: {typeof viewing.dairy === "object" ? viewing.dairy.name : "-"} — {formatDate(viewing.date)}
+              પ્રતિ (To): {typeof viewing.dairy === "object" && viewing.dairy ? viewing.dairy.name : "-"} — {formatDate(viewing.date)}
             </p>
             <div className="divide-y divide-slate-100 rounded-lg border border-slate-100">
               {viewing.items.map((row, i) => (
                 <div key={i} className="flex items-center justify-between px-3 py-2">
-                  <span>{typeof row.item === "object" ? row.item.name : row.item}</span>
-                  <span className="text-slate-500">{row.quantity} units</span>
+                  <span>{typeof row.item === "object" && row.item ? row.item.name : "કાઢી નાખેલ આઇટમ (Deleted item)"}</span>
+                  <span className="text-slate-500">{row.quantity} યુનિટ (units)</span>
                 </div>
               ))}
             </div>
-            {viewing.vehicleNo && <p className="text-slate-500">Vehicle: {viewing.vehicleNo}</p>}
-            {viewing.driverName && <p className="text-slate-500">Driver: {viewing.driverName}</p>}
+            {viewing.vehicleNo && <p className="text-slate-500">વાહન (Vehicle): {viewing.vehicleNo}</p>}
+            {viewing.driverName && <p className="text-slate-500">ડ્રાઈવર (Driver): {viewing.driverName}</p>}
           </div>
         )}
       </Dialog>
@@ -336,9 +434,9 @@ export default function DispatchPage() {
         onClose={() => setCancelTarget(null)}
         onConfirm={handleCancel}
         loading={cancelling}
-        title="Cancel Dispatch Entry"
-        description={`This will reverse the central and dairy stock movements for dispatch "${cancelTarget?.dispatchNo}". Continue?`}
-        confirmLabel="Cancel Entry"
+        title="ડિસ્પેચ એન્ટ્રી રદ કરો (Cancel Dispatch Entry)"
+        description={`આ ડિસ્પેચ "${cancelTarget?.dispatchNo}" માટે મુખ્ય અને ડેરી સ્ટોકની હિલચાલ પાછી આવશે. ચાલુ રાખવું છે? (This will reverse the central and dairy stock movements for dispatch "${cancelTarget?.dispatchNo}". Continue?)`}
+        confirmLabel="એન્ટ્રી રદ કરો (Cancel Entry)"
       />
     </div>
   );

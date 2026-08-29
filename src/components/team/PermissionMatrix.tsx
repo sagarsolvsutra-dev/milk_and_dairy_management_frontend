@@ -8,10 +8,10 @@ import type { Permission } from "@/types";
 export type ModuleDef = { key: string; label: string; group: string };
 
 const ACTIONS = [
-  { key: "view", label: "View", icon: FiEye },
-  { key: "add", label: "Add", icon: FiPlus },
-  { key: "edit", label: "Edit", icon: FiEdit2 },
-  { key: "delete", label: "Delete", icon: FiTrash2 },
+  { key: "view", label: "જુઓ (View)", icon: FiEye },
+  { key: "add", label: "ઉમેરો (Add)", icon: FiPlus },
+  { key: "edit", label: "ફેરફાર (Edit)", icon: FiEdit2 },
+  { key: "delete", label: "કાઢી નાખો (Delete)", icon: FiTrash2 },
 ] as const;
 
 type ActionKey = (typeof ACTIONS)[number]["key"];

@@ -73,7 +73,7 @@ export function Sidebar({
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -96,10 +96,12 @@ export function Sidebar({
               <div key={group.id} className="mb-2">
                 <button
                   onClick={() => toggleGroup(group.id)}
-                  className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-50"
                 >
-                  {group.title}
-                  <FiChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
+                  <span className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-wider text-slate-800">
+                    {group.title} <span className="text-slate-400">({group.titleEn})</span>
+                  </span>
+                  <FiChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180")} />
                 </button>
                 {isOpen && (
                   <div className="mt-1 flex flex-col gap-0.5 pb-3">
@@ -111,15 +113,18 @@ export function Sidebar({
                           key={item.href}
                           href={item.href}
                           onClick={onClose}
+                          title={item.labelEn}
                           className={cn(
-                            "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+                            "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition-colors",
                             active
                               ? "bg-indigo-50 text-indigo-700"
-                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                              : "text-slate-900 hover:bg-slate-50"
                           )}
                         >
                           <Icon className={cn("h-4 w-4 shrink-0", active ? "text-indigo-600" : "text-slate-400")} />
-                          {item.label}
+                          <span className={cn("min-w-0 truncate text-sm font-semibold", active ? "text-indigo-700" : "text-slate-900")}>
+                            {item.label} <span className={active ? "text-indigo-500" : "text-slate-500"}>({item.labelEn})</span>
+                          </span>
                         </Link>
                       );
                     })}

@@ -10,7 +10,7 @@ export const dairyService = {
   remove: (id: string) => api.delete(API_ENDPOINTS.DAIRY_BY_ID(id)),
   toggleStatus: (id: string) => api.patch(API_ENDPOINTS.DAIRY_TOGGLE_STATUS(id)),
   resetPassword: (id: string, password: string) => api.patch(API_ENDPOINTS.DAIRY_RESET_PASSWORD(id), { password }),
-  getSummary: (id: string) => api.get(API_ENDPOINTS.DAIRY_SUMMARY(id)),
+  getSummary: (id: string, params?: ListParams) => api.get(API_ENDPOINTS.DAIRY_SUMMARY(id), { params }),
 
   /** Active dairies for dropdowns (dispatch destination select) — an inactive branch shouldn't be dispatchable to. */
   listActive: (limit = 500) => api.get(API_ENDPOINTS.DAIRIES, { params: { limit, status: "active" } }),

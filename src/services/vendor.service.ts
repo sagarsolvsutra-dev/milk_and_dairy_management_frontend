@@ -17,5 +17,5 @@ export const vendorService = {
 
 export const vendorPaymentService = {
   create: (payload: Record<string, unknown>) => api.post(API_ENDPOINTS.VENDOR_PAYMENTS, payload),
-  outstandingReport: () => api.get(API_ENDPOINTS.VENDOR_PAYMENTS_OUTSTANDING_REPORT),
+  outstandingReport: (params?: ListParams) => api.get(API_ENDPOINTS.VENDOR_PAYMENTS_OUTSTANDING_REPORT, { params }),
 };

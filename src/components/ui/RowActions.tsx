@@ -9,12 +9,18 @@ type ActionProps = {
   disabled?: boolean;
 };
 
-/** Wrap a row's action buttons — keeps consistent spacing everywhere. */
+/** Wrap a row's action buttons — keeps consistent spacing everywhere. Stops
+ * clicks from bubbling up, so an action button inside a clickable row (e.g.
+ * onRowClick navigating to a detail page) doesn't also trigger the row. */
 export function RowActions({ children }: { children: React.ReactNode }) {
-  return <div className="flex items-center gap-1">{children}</div>;
+  return (
+    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      {children}
+    </div>
+  );
 }
 
-export function ViewAction({ onClick, title = "View", disabled }: ActionProps) {
+export function ViewAction({ onClick, title = "જુઓ (View)", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiEye className="h-4 w-4" />
@@ -22,7 +28,7 @@ export function ViewAction({ onClick, title = "View", disabled }: ActionProps) {
   );
 }
 
-export function EditAction({ onClick, title = "Edit", disabled }: ActionProps) {
+export function EditAction({ onClick, title = "ફેરફાર કરો (Edit)", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiEdit2 className="h-4 w-4" />
@@ -30,7 +36,7 @@ export function EditAction({ onClick, title = "Edit", disabled }: ActionProps) {
   );
 }
 
-export function DeleteAction({ onClick, title = "Delete", disabled }: ActionProps) {
+export function DeleteAction({ onClick, title = "કાઢી નાખો (Delete)", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiTrash2 className="h-4 w-4 text-red-500" />
@@ -38,7 +44,7 @@ export function DeleteAction({ onClick, title = "Delete", disabled }: ActionProp
   );
 }
 
-export function CancelAction({ onClick, title = "Cancel", disabled }: ActionProps) {
+export function CancelAction({ onClick, title = "રદ કરો (Cancel)", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiXCircle className="h-4 w-4 text-red-500" />
@@ -49,7 +55,7 @@ export function CancelAction({ onClick, title = "Cancel", disabled }: ActionProp
 export function ToggleStatusAction({
   active,
   onClick,
-  title = "Toggle status",
+  title = "સ્થિતિ બદલો (Toggle status)",
   disabled,
 }: ActionProps & { active: boolean }) {
   return (
@@ -59,7 +65,7 @@ export function ToggleStatusAction({
   );
 }
 
-export function ResetPasswordAction({ onClick, title = "Reset password", disabled }: ActionProps) {
+export function ResetPasswordAction({ onClick, title = "પાસવર્ડ રીસેટ કરો (Reset password)", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiKey className="h-4 w-4" />
@@ -67,7 +73,7 @@ export function ResetPasswordAction({ onClick, title = "Reset password", disable
   );
 }
 
-export function LedgerAction({ onClick, title = "Ledger", disabled }: ActionProps) {
+export function LedgerAction({ onClick, title = "ખાતાવહી (Ledger)", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiBookOpen className="h-4 w-4" />

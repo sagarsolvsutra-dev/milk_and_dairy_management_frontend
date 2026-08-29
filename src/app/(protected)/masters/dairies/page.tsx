@@ -61,7 +61,11 @@ export default function DairiesPage() {
       mobile: () => validateMobile(form.mobile),
       loginId: () => validateLoginId(form.loginId),
       password: () =>
-        !editing ? (!form.password ? "Password is required" : validateMinLength(form.password, 4, "Password")) : undefined,
+        !editing
+          ? !form.password
+            ? "પાસવર્ડ જરૂરી છે (Password is required)"
+            : validateMinLength(form.password, 4, "Password")
+          : undefined,
     });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +73,7 @@ export default function DairiesPage() {
     const { errors: fieldErrors, isValid } = validate();
     setErrors(fieldErrors);
     if (!isValid) {
-      toast.error("Please fix the highlighted fields");
+      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
       return;
     }
     setSaving(true);
@@ -81,10 +85,10 @@ export default function DairiesPage() {
           address: form.address,
           loginId: form.loginId,
         });
-        toast.success("Dairy updated successfully");
+        toast.success("ડેરી સફળતાપૂર્વક અપડેટ થઈ (Dairy updated successfully)");
       } else {
         await dairyService.create(form);
-        toast.success("Dairy created successfully");
+        toast.success("ડેરી સફળતાપૂર્વક બની (Dairy created successfully)");
       }
       setDialogOpen(false);
       refetch();
@@ -117,7 +121,7 @@ export default function DairiesPage() {
     setResetting(true);
     try {
       await dairyService.resetPassword(resetTarget._id, resetPassword);
-      toast.success("Dairy password reset successfully");
+      toast.success("ડેરીનો પાસવર્ડ સફળતાપૂર્વક રીસેટ થયો (Dairy password reset successfully)");
       setResetTarget(null);
       setResetPassword("");
     } catch (err) {
@@ -129,17 +133,21 @@ export default function DairiesPage() {
   };
 
   const columns: Column<Dairy>[] = [
-    { header: "Code", accessor: (d) => <span className="font-mono text-xs text-slate-500">{d.code}</span> },
-    { header: "Dairy Name", accessor: (d) => <span className="font-medium text-slate-900">{d.name}</span> },
-    { header: "Mobile", accessor: (d) => d.mobile },
-    { header: "Login ID", accessor: (d) => d.loginId },
-    { header: "Created", accessor: (d) => formatDate(d.createdAt) },
+    { header: "કોડ (Code)", accessor: (d) => <span className="font-mono text-xs text-slate-500">{d.code}</span> },
+    { header: "ડેરીનું નામ (Dairy Name)", primary: true, accessor: (d) => <span className="font-medium text-slate-900">{d.name}</span> },
+    { header: "મોબાઇલ નંબર (Mobile)", accessor: (d) => d.mobile },
+    { header: "લોગિન ID (Login ID)", accessor: (d) => d.loginId },
+    { header: "બનાવ્યા તારીખ (Created)", accessor: (d) => formatDate(d.createdAt) },
     {
-      header: "Status",
-      accessor: (d) => <Badge tone={d.status === "active" ? "success" : "neutral"}>{d.status}</Badge>,
+      header: "સ્થિતિ (Status)",
+      accessor: (d) => (
+        <Badge tone={d.status === "active" ? "success" : "neutral"}>
+          {d.status === "active" ? "ચાલુ (Active)" : "બંધ (Inactive)"}
+        </Badge>
+      ),
     },
     {
-      header: "Actions",
+      header: "ક્રિયા (Actions)",
       accessor: (d) => (
         <RowActions>
           <EditAction onClick={() => openEdit(d)} />
@@ -153,63 +161,67 @@ export default function DairiesPage() {
   return (
     <div>
       <PageHeader
-        title="Dairies (Branch)"
-        description="Manage unlimited dairy branches and their login access"
+        title="ડેરી (શાખા) (Dairies / Branch)"
+        description="અમર્યાદિત ડેરી શાખાઓ અને તેમની લોગિન ઍક્સેસ મેનેજ કરો (Manage unlimited dairy branches and their login access)"
         actions={
           <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
-            Add Dairy
+            ડેરી ઉમેરો (Add Dairy)
           </Button>
         }
       />
 
       <div className="mb-4">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search by name, code, mobile, address, login..." />
+        <SearchInput
+          value={search}
+          onChange={(v) => { setSearch(v); setPage(1); }}
+          placeholder="નામ, કોડ, મોબાઇલ, સરનામું, લોગિનથી શોધો... (Search by name, code, mobile, address, login...)"
+        />
       </div>
 
-      <Table columns={columns} data={items} keyField={(d) => d._id} loading={loading} emptyMessage="No dairies added yet" />
+      <Table columns={columns} data={items} keyField={(d) => d._id} loading={loading} emptyMessage="હજુ કોઈ ડેરી ઉમેરી નથી (No dairies added yet)" />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editing ? "Edit Dairy" : "Add Dairy"}
+        title={editing ? "ડેરીમાં ફેરફાર કરો (Edit Dairy)" : "ડેરી ઉમેરો (Add Dairy)"}
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              રદ કરો (Cancel)
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editing ? "Save Changes" : "Create Dairy"}
+              {editing ? "ફેરફાર સેવ કરો (Save Changes)" : "ડેરી બનાવો (Create Dairy)"}
             </Button>
           </>
         }
       >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="Dairy Name"
+            label="ડેરીનું નામ (Dairy Name)"
             required
             error={errors.name}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <Input
-            label="Mobile Number"
+            label="મોબાઇલ નંબર (Mobile Number)"
             required
             inputMode="numeric"
             maxLength={10}
-            hint="10-digit mobile number"
+            hint="10 અંકનો મોબાઇલ નંબર (10-digit mobile number)"
             error={errors.mobile}
             value={form.mobile}
             onChange={(e) => setForm({ ...form, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
           />
           <Input
-            label="Address"
+            label="સરનામું (Address)"
             wrapperClassName="sm:col-span-2"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
           />
           <Input
-            label="Login ID"
+            label="લોગિન ID (Login ID)"
             required
             error={errors.loginId}
             value={form.loginId}
@@ -217,10 +229,10 @@ export default function DairiesPage() {
           />
           {!editing && (
             <PasswordInput
-              label="Password"
+              label="પાસવર્ડ (Password)"
               required
               error={errors.password}
-              hint="At least 4 characters"
+              hint="ઓછામાં ઓછા 4 અક્ષર (At least 4 characters)"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
@@ -231,22 +243,22 @@ export default function DairiesPage() {
       <Dialog
         open={Boolean(resetTarget)}
         onClose={() => setResetTarget(null)}
-        title={`Reset Password — ${resetTarget?.name}`}
+        title={`પાસવર્ડ રીસેટ કરો (Reset Password) — ${resetTarget?.name}`}
         size="sm"
         footer={
           <>
             <Button variant="outline" onClick={() => setResetTarget(null)}>
-              Cancel
+              રદ કરો (Cancel)
             </Button>
             <Button onClick={handleResetPassword} loading={resetting}>
-              Reset Password
+              પાસવર્ડ રીસેટ કરો (Reset Password)
             </Button>
           </>
         }
       >
         <form onSubmit={handleResetPassword}>
           <PasswordInput
-            label="New Password"
+            label="નવો પાસવર્ડ (New Password)"
             required
             value={resetPassword}
             onChange={(e) => setResetPassword(e.target.value)}

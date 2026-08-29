@@ -77,7 +77,7 @@ export type Item = {
   name: string;
   code: string;
   category?: string;
-  unit: Unit | string;
+  unit: Unit | string | null;
   recipe: { milkQtyPerUnit: number; milkUnit: string };
   defaultSellingPrice: number;
   gstSlab?: GstSlab | string | null;
@@ -101,7 +101,7 @@ export type PurchaseEntry = {
   _id: string;
   date: string;
   billNo: string;
-  vendor: Vendor | string;
+  vendor: Vendor | string | null;
   quantity: number;
   unit: "KG" | "Litre";
   rate: number;
@@ -130,7 +130,7 @@ export type ProductionEntry = {
   _id: string;
   date: string;
   batchNo: string;
-  items: { item: Item | string; quantity: number; milkConsumed: number }[];
+  items: { item: Item | string | null; quantity: number; milkConsumed: number }[];
   totalMilkConsumed: number;
   remark?: string;
   status: "active" | "cancelled";
@@ -140,8 +140,8 @@ export type DispatchEntry = {
   _id: string;
   date: string;
   dispatchNo: string;
-  dairy: Dairy | string;
-  items: { item: Item | string; quantity: number }[];
+  dairy: Dairy | string | null;
+  items: { item: Item | string | null; quantity: number }[];
   vehicleNo?: string;
   driverName?: string;
   remark?: string;
@@ -152,10 +152,10 @@ export type Bill = {
   _id: string;
   date: string;
   billNo: string;
-  dairy: Dairy | string;
+  dairy: Dairy | string | null;
   customerName?: string;
   customerMobile?: string;
-  items: { item: Item | string; quantity: number; rate: number; discount: number; amount: number }[];
+  items: { item: Item | string | null; quantity: number; rate: number; discount: number; tax: number; amount: number }[];
   gstEnabled: boolean;
   gstAmount: number;
   roundOff: number;
@@ -181,6 +181,42 @@ export type TeamUser = {
 
 export type StockItem = {
   _id: string;
-  item: Item;
+  item: Item | null;
   currentQty: number;
+};
+
+export type ConsolidatedStockItem = {
+  item: { _id: string; name: string; code: string };
+  centralStock: number;
+  dairyStock: { dairy: { _id: string; name: string; code: string }; qty: number }[];
+  totalStock: number;
+};
+
+export type StockLedgerEntry = {
+  _id: string;
+  stockType: "milk" | "central_item" | "dairy_item";
+  dairy?: { _id: string; name: string; code: string } | null;
+  quantity: number;
+  balanceAfter: number;
+  transactionType:
+    | "purchase"
+    | "production_in"
+    | "production_out"
+    | "dispatch_out"
+    | "dispatch_in"
+    | "sale_out"
+    | "sale_cancel_in"
+    | "adjustment";
+  remark?: string;
+  date: string;
+};
+
+export type Notification = {
+  _id: string;
+  title: string;
+  message: string;
+  type: "vendor_due" | "low_stock_central" | "low_stock_dairy" | "dispatch" | "general";
+  audience: "super_admin" | "dairy" | "all";
+  isRead: boolean;
+  createdAt: string;
 };

@@ -9,26 +9,27 @@ export default function GstSlabsPage() {
     <SimpleMasterManager
       endpoint={API_ENDPOINTS.MASTER_GST_SLABS}
       module="gst_slab"
-      title="GST Slabs"
-      description="Manage GST percentage slabs used on items and bills"
-      addLabel="Add GST Slab"
-      searchPlaceholder="Search GST slabs..."
+      title="GST સ્લેબ (GST Slabs)"
+      singularLabel="GST સ્લેબ (GST Slab)"
+      description="વસ્તુઓ અને બિલ પર વપરાતા GST ટકાવારી સ્લેબ સંભાળો (Manage GST percentage slabs used on items and bills)"
+      addLabel="GST સ્લેબ ઉમેરો (Add GST Slab)"
+      searchPlaceholder="GST સ્લેબ શોધો... (Search GST slabs...)"
       fields={[
         {
           name: "percent",
-          label: "GST %",
+          label: "ટકા (%) (GST %)",
           type: "number",
           required: true,
-          placeholder: "e.g. 18",
+          placeholder: "દા.ત. 18 (e.g. 18)",
           min: 0,
           max: 100,
           validate: (v) => validatePercent(v, "GST %"),
         },
-        { name: "label", label: "Label", placeholder: "e.g. 18% GST" },
+        { name: "label", label: "લેબલ (Label)", placeholder: "દા.ત. 18% GST (e.g. 18% GST)" },
       ]}
       displayColumns={[
-        { header: "Percent", render: (row) => <span className="font-medium text-slate-900">{String(row.percent)}%</span> },
-        { header: "Label", render: (row) => String(row.label || "-") },
+        { header: "ટકા (%) (Percent)", render: (row) => <span className="font-medium text-slate-900">{String(row.percent)}%</span> },
+        { header: "લેબલ (Label)", render: (row) => String(row.label || "-") },
       ]}
     />
   );

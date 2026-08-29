@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, getErrorMessage } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 
@@ -22,8 +22,13 @@ export function usePaginatedList<T, S = Record<string, number>>(endpoint: string
   const toast = useToast();
 
   const paramsKey = JSON.stringify(extraParams);
+  // Guards against an older, slower request resolving after a newer one and
+  // overwriting fresher state with stale results (e.g. rapid search typing
+  // or fast page-clicking, where requests can resolve out of order).
+  const requestIdRef = useRef(0);
 
   const fetchList = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError("");
     try {
@@ -33,17 +38,19 @@ export function usePaginatedList<T, S = Record<string, number>>(endpoint: string
         if (v !== undefined && v !== "") params[k] = v;
       });
       const res = await api.get(endpoint, { params });
+      if (requestId !== requestIdRef.current) return; // a newer request has since started — discard this one
       const data = res.data.data;
       setItems(data.items ?? data ?? []);
       setTotal(data.total ?? (Array.isArray(data) ? data.length : 0));
       setPages(data.pages ?? 1);
       setSummary(data.summary ?? null);
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       const msg = getErrorMessage(err);
       setError(msg);
       toast.error(msg, "Failed to load data");
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endpoint, search, page, limit, paramsKey]);

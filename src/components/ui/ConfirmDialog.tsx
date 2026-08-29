@@ -18,9 +18,9 @@ export function ConfirmDialog({
   open,
   onClose,
   onConfirm,
-  title = "Are you sure?",
-  description = "This action cannot be undone.",
-  confirmLabel = "Confirm",
+  title = "શું તમે ખાતરી છો? (Are you sure?)",
+  description = "આ ક્રિયા પાછી ફેરવી શકાશે નહીં. (This action cannot be undone.)",
+  confirmLabel = "ખાતરી કરો (Confirm)",
   variant = "danger",
   loading = false,
 }: ConfirmDialogProps) {
@@ -34,7 +34,7 @@ export function ConfirmDialog({
       footer={
         <>
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancel
+            રદ કરો (Cancel)
           </Button>
           <Button variant={variant} onClick={onConfirm} loading={loading}>
             {confirmLabel}

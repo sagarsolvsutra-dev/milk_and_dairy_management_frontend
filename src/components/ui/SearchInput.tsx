@@ -7,7 +7,7 @@ import { Input } from "./Input";
 export function SearchInput({
   value,
   onChange,
-  placeholder = "Search...",
+  placeholder = "શોધો... (Search...)",
   debounceMs = 300,
 }: {
   value: string;

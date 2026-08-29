@@ -51,31 +51,31 @@ export default function DairyReportsPage() {
   };
 
   const columns: Column<Row>[] = [
-    { header: "Date", accessor: (r) => formatDate(r.date) },
-    { header: "Bill No.", accessor: (r) => r.billNo },
-    { header: "Customer", accessor: (r) => r.customerName || "Walk-in" },
-    { header: "Amount", accessor: (r) => formatCurrency(r.grandTotal) },
+    { header: "તારીખ (Date)", accessor: (r) => formatDate(r.date) },
+    { header: "બિલ નંબર (Bill No.)", accessor: (r) => r.billNo },
+    { header: "ગ્રાહક (Customer)", accessor: (r) => r.customerName || "વૉક-ઇન (Walk-in)" },
+    { header: "રકમ (Amount)", accessor: (r) => formatCurrency(r.grandTotal) },
   ];
 
   return (
     <div>
-      <PageHeader title="My Reports" description="Sales report for your dairy" />
+      <PageHeader title="મારા રિપોર્ટ (My Reports)" description="તમારી ડેરીનું વેચાણ રિપોર્ટ (Sales report for your dairy)" />
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
-        <Input label="From" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        <Input label="To" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+        <Input label="થી (From)" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+        <Input label="સુધી (To)" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         <Button onClick={() => changePage(1)} loading={loading}>
-          Apply
+          લાગુ કરો (Apply)
         </Button>
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <StatCard label="Total Sales" value={formatCurrency(totalSales)} tone="emerald" />
-        <StatCard label="Total Bills" value={totalBills} tone="indigo" />
+        <StatCard label="કુલ વેચાણ (Total Sales)" value={formatCurrency(totalSales)} tone="emerald" />
+        <StatCard label="કુલ બિલ (Total Bills)" value={totalBills} tone="indigo" />
       </div>
 
       <Card className="p-0">
-        <Table columns={columns} data={bills} keyField={(r) => r._id} loading={loading} emptyMessage="No sales in this period" />
+        <Table columns={columns} data={bills} keyField={(r) => r._id} loading={loading} emptyMessage="આ સમયગાળામાં કોઈ વેચાણ નથી (No sales in this period)" />
       </Card>
       <Pagination page={page} pages={pages} total={totalBills} onPageChange={changePage} />
     </div>

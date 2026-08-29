@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { Spinner } from "@/components/ui/Spinner";
+import { AppShellSkeleton } from "@/components/ui/Skeleton";
 
 export default function RootPage() {
   const router = useRouter();
@@ -20,9 +20,5 @@ export default function RootPage() {
     }
   }, [isHydrated, token, user, router]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Spinner />
-    </div>
-  );
+  return <AppShellSkeleton />;
 }

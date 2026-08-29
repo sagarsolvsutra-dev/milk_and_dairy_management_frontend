@@ -57,7 +57,7 @@ export function Pagination({ page, pages, total, onPageChange, limit = 10 }: Pag
           disabled={page <= 1}
           className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          ‹ Back
+          ‹ પાછળ
         </button>
 
         {pageNumbers.map((p, i) =>
@@ -84,11 +84,11 @@ export function Pagination({ page, pages, total, onPageChange, limit = 10 }: Pag
           disabled={page >= pages}
           className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Next ›
+          આગળ ›
         </button>
 
         <div className="ml-1 flex items-center gap-1.5 text-sm text-slate-500">
-          <span>Page</span>
+          <span>પાનું</span>
           <input
             type="number"
             min={1}
@@ -101,13 +101,13 @@ export function Pagination({ page, pages, total, onPageChange, limit = 10 }: Pag
             className="h-8 w-16 rounded-lg border border-slate-300 px-2 text-center text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           />
           <button onClick={handleJump} className="cursor-pointer font-medium text-indigo-600 hover:text-indigo-700">
-            Go
+            જાઓ
           </button>
         </div>
       </div>
 
       <p className="text-xs text-slate-500">
-        {rangeStart.toLocaleString("en-IN")}-{rangeEnd.toLocaleString("en-IN")} of {total.toLocaleString("en-IN")}
+        {rangeStart.toLocaleString("en-IN")}-{rangeEnd.toLocaleString("en-IN")} / કુલ (of) {total.toLocaleString("en-IN")}
       </p>
     </div>
   );

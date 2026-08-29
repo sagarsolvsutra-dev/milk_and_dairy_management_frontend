@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
 import { usePaginatedList } from "@/hooks/usePaginatedList";
@@ -22,7 +23,9 @@ import { useAuth } from "@/hooks/useAuth";
 export type FieldConfig = {
   name: string;
   label: string;
-  type?: "text" | "number" | "textarea";
+  type?: "text" | "number" | "textarea" | "select";
+  /** Required when type is "select". */
+  options?: { label: string; value: string }[];
   required?: boolean;
   span?: 1 | 2;
   placeholder?: string;
@@ -42,6 +45,8 @@ type SimpleMasterManagerProps = {
   /** Permission module key gating add/edit/delete on this master (view is enforced by the route guard). */
   module: string;
   title: string;
+  /** Singular form of the record name, used in the edit dialog title and save/add toasts (e.g. "એકમ (Unit)" for a title of "એકમ (Units)"). */
+  singularLabel: string;
   description?: string;
   addLabel: string;
   fields: FieldConfig[];
@@ -54,10 +59,11 @@ export function SimpleMasterManager({
   endpoint,
   module,
   title,
+  singularLabel,
   description,
   addLabel,
   fields,
-  searchPlaceholder = "Search...",
+  searchPlaceholder = "શોધો... (Search...)",
   hasToggle = true,
   displayColumns,
 }: SimpleMasterManagerProps) {
@@ -106,7 +112,7 @@ export function SimpleMasterManager({
     fields.forEach((f) => {
       const raw = form[f.name] ?? "";
       if (f.required && !raw.trim()) {
-        nextErrors[f.name] = `${f.label} is required`;
+        nextErrors[f.name] = `${f.label} જરૂરી છે (required)`;
         return;
       }
       const customError = f.validate?.(raw);
@@ -120,7 +126,7 @@ export function SimpleMasterManager({
     const { errors: fieldErrors, isValid } = validate();
     setErrors(fieldErrors);
     if (!isValid) {
-      toast.error("Please fix the highlighted fields");
+      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
       return;
     }
     setSaving(true);
@@ -131,10 +137,10 @@ export function SimpleMasterManager({
       });
       if (editing) {
         await service.update(editing._id, payload);
-        toast.success(`${title.replace(/s$/, "")} updated successfully`);
+        toast.success(`${singularLabel} અપડેટ થયું (updated successfully)`);
       } else {
         await service.create(payload);
-        toast.success(`${title.replace(/s$/, "")} added successfully`);
+        toast.success(`${singularLabel} ઉમેરાયું (added successfully)`);
       }
       setDialogOpen(false);
       refetch();
@@ -168,7 +174,7 @@ export function SimpleMasterManager({
     setDeleting(true);
     try {
       await service.remove(deleteTarget._id);
-      toast.success("Deleted successfully");
+      toast.success("કાઢી નાખ્યું (Deleted successfully)");
       setDeleteTarget(null);
       refetch();
     } catch (err) {
@@ -184,9 +190,9 @@ export function SimpleMasterManager({
     ...(hasToggle
       ? [
           {
-            header: "Status",
+            header: "સ્થિતિ (Status)",
             accessor: (row: MasterRow) => (
-              <Badge tone={row.isActive ? "success" : "neutral"}>{row.isActive ? "Active" : "Inactive"}</Badge>
+              <Badge tone={row.isActive ? "success" : "neutral"}>{row.isActive ? "ચાલુ (Active)" : "બંધ (Inactive)"}</Badge>
             ),
           },
         ]
@@ -194,7 +200,7 @@ export function SimpleMasterManager({
     ...(canEdit || canDelete
       ? [
           {
-            header: "Actions",
+            header: "ક્રિયા (Actions)",
             accessor: (row: MasterRow) => (
               <RowActions>
                 {canEdit && <EditAction onClick={() => openEdit(row)} />}
@@ -227,20 +233,20 @@ export function SimpleMasterManager({
         <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={searchPlaceholder} />
       </div>
 
-      <Table columns={columns} data={items} keyField={(row) => row._id} loading={loading} emptyMessage="No records found" />
+      <Table columns={columns} data={items} keyField={(row) => row._id} loading={loading} />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editing ? `Edit ${title.replace(/s$/, "")}` : addLabel}
+        title={editing ? `${singularLabel} ફેરફાર (Edit)` : addLabel}
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              રદ કરો (Cancel)
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editing ? "Save Changes" : "Add"}
+              {editing ? "ફેરફાર સેવ કરો (Save Changes)" : "ઉમેરો (Add)"}
             </Button>
           </>
         }
@@ -258,6 +264,18 @@ export function SimpleMasterManager({
                 value={form[f.name] ?? ""}
                 onChange={(e) => setForm({ ...form, [f.name]: f.transform ? f.transform(e.target.value) : e.target.value })}
                 className={f.span === 2 ? "sm:col-span-2" : undefined}
+              />
+            ) : f.type === "select" ? (
+              <Select
+                key={f.name}
+                label={f.label}
+                required={f.required}
+                options={f.options || []}
+                error={errors[f.name]}
+                hint={f.hint}
+                value={form[f.name] ?? ""}
+                onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
+                wrapperClassName={f.span === 2 ? "sm:col-span-2" : undefined}
               />
             ) : (
               <Input
@@ -284,9 +302,9 @@ export function SimpleMasterManager({
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         loading={deleting}
-        title="Delete Record"
-        description="Are you sure you want to delete this record? This cannot be undone."
-        confirmLabel="Delete"
+        title={`${singularLabel} કાઢી નાખો (Delete)`}
+        description="શું તમે ખરેખર આ રેકોર્ડ કાઢી નાખવા માંગો છો? આ પાછું ફેરવી શકાશે નહીં. (Are you sure you want to delete this record? This cannot be undone.)"
+        confirmLabel="કાઢી નાખો (Delete)"
       />
     </div>
   );

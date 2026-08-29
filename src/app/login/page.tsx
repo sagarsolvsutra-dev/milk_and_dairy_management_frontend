@@ -46,14 +46,14 @@ export default function LoginPage() {
             priority
           />
           <h1 className="mt-4 text-lg font-semibold text-slate-900">Murli Milk Dairy Management</h1>
-          <p className="mt-1 text-sm text-slate-500">Sign in to your admin or dairy panel</p>
+          <p className="mt-1 text-sm text-slate-500">તમારા એડમિન અથવા ડેરી પેનલમાં લોગિન કરો (Sign in to your admin or dairy panel)</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           {error && <Alert type="error">{error}</Alert>}
 
           <Input
-            label="Login ID"
+            label="લોગિન ID (Login ID)"
             placeholder="e.g. admin"
             icon={<FiUser className="h-4 w-4" />}
             value={loginId}
@@ -62,7 +62,7 @@ export default function LoginPage() {
             autoFocus
           />
           <PasswordInput
-            label="Password"
+            label="પાસવર્ડ (Password)"
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -70,7 +70,7 @@ export default function LoginPage() {
           />
 
           <Button type="submit" className="mt-2 w-full" loading={loading}>
-            Sign In
+            લોગિન કરો (Sign In)
           </Button>
         </form>
 
