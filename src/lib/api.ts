@@ -51,7 +51,14 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const isLoginEndpoint = originalRequest?.url === API_ENDPOINTS.LOGIN;
-    const isAuthEndpoint = isLoginEndpoint || originalRequest?.url === API_ENDPOINTS.AUTH_REFRESH;
+    const isRefreshEndpoint = originalRequest?.url === API_ENDPOINTS.AUTH_REFRESH;
+    // A 401 from change-password means "current password is incorrect" — a
+    // business-logic rejection unrelated to session validity, not a signal
+    // that the access token expired. Treating it like any other 401 would
+    // trigger a (successful) silent refresh, retry with the same wrong
+    // password, get 401 again, and force-logout the user over a typo.
+    const isChangePasswordEndpoint = originalRequest?.url === API_ENDPOINTS.AUTH_CHANGE_PASSWORD;
+    const isAuthEndpoint = isLoginEndpoint || isRefreshEndpoint || isChangePasswordEndpoint;
 
     if (error.response?.status === 401 && !isAuthEndpoint && !originalRequest?._retriedAfterRefresh) {
       originalRequest._retriedAfterRefresh = true;
@@ -70,7 +77,7 @@ api.interceptors.response.use(
     // must not clear the persisted auth store. Left unguarded, this would
     // wipe another tab's active session too, since login/session state share
     // the same localStorage key across tabs.
-    if (error.response?.status === 401 && !isLoginEndpoint) {
+    if (error.response?.status === 401 && !isLoginEndpoint && !isChangePasswordEndpoint) {
       logoutAndRedirect();
     }
     return Promise.reject(error);
@@ -87,6 +94,28 @@ export async function downloadFile(url: string, filename: string): Promise<void>
   link.click();
   link.remove();
   window.URL.revokeObjectURL(blobUrl);
+}
+
+// Opens a PDF in a new tab using the browser's own PDF viewer (which has its
+// own print button/shortcut) instead of window.print()-ing the current page —
+// there's no print stylesheet in this app, so printing the page itself would
+// print the sidebar/topbar/dashboard chrome around the content, not a clean
+// document. The tab is opened synchronously (before the fetch) so it carries
+// the click's user-gesture and isn't blocked as a popup once the blob resolves.
+export async function openFileForPrint(url: string): Promise<void> {
+  const printWindow = window.open("", "_blank");
+  try {
+    const response = await api.get(url, { responseType: "blob" });
+    const blobUrl = window.URL.createObjectURL(response.data);
+    if (printWindow) {
+      printWindow.location.href = blobUrl;
+    } else {
+      window.open(blobUrl, "_blank");
+    }
+  } catch (err) {
+    printWindow?.close();
+    throw err;
+  }
 }
 
 export function getErrorMessage(error: unknown): string {

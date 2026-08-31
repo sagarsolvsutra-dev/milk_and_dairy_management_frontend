@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Anek_Gujarati } from "next/font/google";
+import { Geist_Mono, Anek_Gujarati, Inter } from "next/font/google";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
 
 const anekGujarati = Anek_Gujarati({
   variable: "--font-anek-gujarati",
@@ -22,9 +27,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${anekGujarati.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${anekGujarati.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-slate-50 font-sans" suppressHydrationWarning>
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

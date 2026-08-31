@@ -37,6 +37,7 @@ export default function BillHistoryPage() {
   const [cancelTarget, setCancelTarget] = useState<Bill | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const cancellingRef = useRef(false);
 
   const handleDownloadPdf = async () => {
@@ -48,6 +49,18 @@ export default function BillHistoryPage() {
       toast.error(getErrorMessage(err));
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!viewing) return;
+    setPrinting(true);
+    try {
+      await billService.printPdf(viewing._id);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setPrinting(false);
     }
   };
 
@@ -139,7 +152,7 @@ export default function BillHistoryPage() {
             <p className="text-right font-semibold">કુલ રકમ (Grand Total): {formatCurrency(viewing.grandTotal)}</p>
 
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <Button variant="outline" icon={<FiPrinter className="h-4 w-4" />} onClick={() => window.print()}>
+              <Button variant="outline" icon={<FiPrinter className="h-4 w-4" />} onClick={handlePrint} loading={printing}>
                 પ્રિન્ટ કરો (Print)
               </Button>
               <Button icon={<FiDownload className="h-4 w-4" />} onClick={handleDownloadPdf} loading={downloading}>

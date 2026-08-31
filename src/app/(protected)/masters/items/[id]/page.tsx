@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, StatCard } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/ui/Pagination";
-import { DetailPageSkeleton, ListSkeleton } from "@/components/ui/Skeleton";
+import { PageHeaderSkeleton, StatCardsSkeleton, CardsGridSkeleton, ListSkeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
 import { getErrorMessage } from "@/lib/api";
 import { itemService } from "@/services/item.service";
@@ -63,6 +63,17 @@ export default function ItemDetailPage() {
   const [ledgerPages, setLedgerPages] = useState(1);
   const [ledgerLoading, setLedgerLoading] = useState(true);
 
+  // Next.js reuses this same component instance across two visits to this
+  // dynamic route — reset everything tied to the OLD item when the id
+  // changes, so the loading gate below correctly shows the skeleton again
+  // instead of briefly rendering the previous item's stock under the new
+  // item's URL, and so the new item doesn't inherit the old one's ledger page.
+  useEffect(() => {
+    setItem(null);
+    setStockDetail(null);
+    setLedgerPage(1);
+  }, [params.id]);
+
   useEffect(() => {
     setLedgerLoading(true);
     inventoryService
@@ -78,7 +89,13 @@ export default function ItemDetailPage() {
   }, [params.id, ledgerPage]);
 
   if (loading && !item) {
-    return <DetailPageSkeleton statCount={3} statCols={3} tableRows={5} tableCols={3} />;
+    return (
+      <div>
+        <PageHeaderSkeleton />
+        <StatCardsSkeleton count={3} cols={3} />
+        <CardsGridSkeleton count={2} />
+      </div>
+    );
   }
 
   if (!item) {

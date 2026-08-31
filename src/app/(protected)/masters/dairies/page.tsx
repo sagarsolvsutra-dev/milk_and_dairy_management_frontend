@@ -244,7 +244,7 @@ export default function DairiesPage() {
         open={Boolean(resetTarget)}
         onClose={() => setResetTarget(null)}
         title={`પાસવર્ડ રીસેટ કરો (Reset Password) — ${resetTarget?.name}`}
-        size="sm"
+        size="md"
         footer={
           <>
             <Button variant="outline" onClick={() => setResetTarget(null)}>
@@ -256,7 +256,7 @@ export default function DairiesPage() {
           </>
         }
       >
-        <form onSubmit={handleResetPassword}>
+        <form onSubmit={handleResetPassword} className="min-h-[150px] flex flex-col justify-center">
           <PasswordInput
             label="નવો પાસવર્ડ (New Password)"
             required

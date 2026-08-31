@@ -56,6 +56,7 @@ export default function BillingPage() {
   const [saving, setSaving] = useState(false);
   const [savedBill, setSavedBill] = useState<Bill | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const savingRef = useRef(false);
 
   // Same item can appear on more than one row — combine what's actually
@@ -183,6 +184,18 @@ export default function BillingPage() {
       toast.error(getErrorMessage(err));
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!savedBill) return;
+    setPrinting(true);
+    try {
+      await billService.printPdf(savedBill._id);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setPrinting(false);
     }
   };
 
@@ -405,7 +418,7 @@ export default function BillingPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" icon={<FiPrinter className="h-4 w-4" />} onClick={() => window.print()}>
+              <Button variant="outline" icon={<FiPrinter className="h-4 w-4" />} onClick={handlePrint} loading={printing}>
                 પ્રિન્ટ કરો (Print)
               </Button>
               <Button icon={<FiDownload className="h-4 w-4" />} onClick={handleDownloadPdf} loading={downloading}>

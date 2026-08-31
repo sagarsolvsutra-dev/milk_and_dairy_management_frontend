@@ -47,6 +47,14 @@ export default function VendorLedgerPage() {
   const [amountError, setAmountError] = useState("");
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
+  useEffect(() => {
+    setVendor(null);
+    setEntries([]);
+    setPage(1);
+    setSearch("");
+    setFrom("");
+    setTo("");
+  }, [params.id]);
 
   const fetchLedger = useCallback(async () => {
     setLoading(true);
@@ -120,8 +128,8 @@ export default function VendorLedgerPage() {
     outstanding > 0
       ? "તમારે વેન્ડરને આટલા રૂપિયા ચૂકવવાના બાકી છે"
       : outstanding < 0
-      ? "તમે વધારે ચૂકવ્યા છે (એડવાન્સ જમા છે)"
-      : "કોઈ બાકી નથી, હિસાબ ક્લિયર છે";
+        ? "તમે વધારે ચૂકવ્યા છે (એડવાન્સ જમા છે)"
+        : "કોઈ બાકી નથી, હિસાબ ક્લિયર છે";
 
   if (loading && !vendor) {
     return <DetailPageSkeleton statCount={3} statCols={3} tableRows={6} tableCols={5} />;

@@ -101,9 +101,9 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "એકમ", labelEn: "Units", href: "/masters/units", icon: FiSettings, roles: ["super_admin", "staff"], module: "unit" },
       { label: "GST સ્લેબ", labelEn: "GST Slabs", href: "/masters/gst-slabs", icon: FiSettings, roles: ["super_admin", "staff"], module: "gst_slab" },
       { label: "શહેર", labelEn: "Cities", href: "/masters/cities", icon: FiSettings, roles: ["super_admin", "staff"], module: "city" },
-      { label: "બેંક વિગત", labelEn: "Bank Details", href: "/masters/bank-details", icon: FiSettings, roles: ["super_admin", "staff"], module: "bank_detail" },
-      { label: "WhatsApp ટોકન", labelEn: "WhatsApp Tokens", href: "/masters/whatsapp-tokens", icon: FiMessageCircle, roles: ["super_admin", "staff"], module: "whatsapp_token" },
-      { label: "નિયમો અને શરતો", labelEn: "Terms & Conditions", href: "/masters/terms", icon: FiSettings, roles: ["super_admin", "staff"], module: "terms" },
+      // { label: "બેંક વિગત", labelEn: "Bank Details", href: "/masters/bank-details", icon: FiSettings, roles: ["super_admin", "staff"], module: "bank_detail" },
+      // { label: "WhatsApp ટોકન", labelEn: "WhatsApp Tokens", href: "/masters/whatsapp-tokens", icon: FiMessageCircle, roles: ["super_admin", "staff"], module: "whatsapp_token" },
+      // { label: "નિયમો અને શરતો", labelEn: "Terms & Conditions", href: "/masters/terms", icon: FiSettings, roles: ["super_admin", "staff"], module: "terms" },
     ],
   },
 ];

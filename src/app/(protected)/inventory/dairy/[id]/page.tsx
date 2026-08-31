@@ -80,8 +80,34 @@ export default function DairyDetailPage() {
     extraParams: { dairy: params.id },
   });
 
+  // Next.js reuses this same component instance across two visits to this
+  // dynamic route — reset everything tied to the OLD dairy when the id
+  // changes, so the loading gate below correctly shows the skeleton again
+  // instead of briefly rendering the previous dairy's stock under the new
+  // dairy's URL, and so the new dairy doesn't inherit stale page numbers.
+  useEffect(() => {
+    setSummary(null);
+    setStockPage(1);
+    setDispatchPage(1);
+    setDispatchSearch("");
+    setBillPage(1);
+    setBillSearch("");
+  }, [params.id]);
+
   if (loading && !summary) return <DetailPageSkeleton statCount={4} statCols={4} tableRows={6} tableCols={4} />;
-  if (!summary) return null;
+  if (!summary) {
+    return (
+      <div>
+        <button
+          onClick={() => router.back()}
+          className="mb-3 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
+        >
+          <FiArrowLeft className="h-4 w-4" /> પાછળ (Back)
+        </button>
+        <p className="text-sm text-slate-500">ડેરી મળી નથી (Dairy not found).</p>
+      </div>
+    );
+  }
 
   const { dairy, currentStock, currentStockPages, currentStockCount, currentStockTotal, totalDispatched, totalSold, totalSalesAmount } = summary;
 
