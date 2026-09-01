@@ -8,4 +8,5 @@ export const productionService = {
   create: (payload: Record<string, unknown>) => api.post(API_ENDPOINTS.PRODUCTION, payload),
   update: (id: string, payload: Record<string, unknown>) => api.put(API_ENDPOINTS.PRODUCTION_BY_ID(id), payload),
   cancel: (id: string) => api.patch(API_ENDPOINTS.PRODUCTION_CANCEL(id)),
+  remove: (id: string) => api.delete(API_ENDPOINTS.PRODUCTION_BY_ID(id)),
 };

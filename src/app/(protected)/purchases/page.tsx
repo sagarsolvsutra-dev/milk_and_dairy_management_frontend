@@ -13,10 +13,11 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
-import { RowActions, ViewAction, EditAction, CancelAction } from "@/components/ui/RowActions";
+import { RowActions, ViewAction, EditAction, CancelAction, DeleteAction } from "@/components/ui/RowActions";
 import { usePaginatedList } from "@/hooks/usePaginatedList";
 import { getErrorMessage } from "@/lib/api";
 import { purchaseService } from "@/services/purchase.service";
@@ -69,6 +70,8 @@ export default function PurchasesPage() {
   const [cancelTarget, setCancelTarget] = useState<PurchaseEntry | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [viewing, setViewing] = useState<PurchaseEntry | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PurchaseEntry | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [editTarget, setEditTarget] = useState<PurchaseEntry | null>(null);
   const [editForm, setEditForm] = useState(emptyForm);
@@ -77,6 +80,7 @@ export default function PurchasesPage() {
   const savingRef = useRef(false);
   const editSavingRef = useRef(false);
   const cancellingRef = useRef(false);
+  const deletingRef = useRef(false);
 
   const editTotals = useMemo(() => {
     const qty = Number(editForm.quantity) || 0;
@@ -240,6 +244,23 @@ export default function PurchasesPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget || deletingRef.current) return;
+    deletingRef.current = true;
+    setDeleting(true);
+    try {
+      await purchaseService.remove(deleteTarget._id);
+      toast.success("Purchase entry deleted");
+      setDeleteTarget(null);
+      refetch();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      deletingRef.current = false;
+      setDeleting(false);
+    }
+  };
+
   const columns: Column<PurchaseEntry>[] = [
     { header: "Date", accessor: (p) => formatDate(p.date) },
     { header: "Bill No.", accessor: (p) => <span className="font-mono text-xs">{p.billNo}</span> },
@@ -266,6 +287,7 @@ export default function PurchasesPage() {
           <ViewAction onClick={() => setViewing(p)} />
           {p.status === "active" && canEdit && <EditAction onClick={() => openEdit(p)} />}
           {p.status === "active" && canDelete && <CancelAction title="Cancel entry" onClick={() => setCancelTarget(p)} />}
+          {canDelete && <DeleteAction title="Delete entry" onClick={() => setDeleteTarget(p)} />}
         </RowActions>
       ),
     },
@@ -327,7 +349,7 @@ export default function PurchasesPage() {
         }
       >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Purchase Date" type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+          <DatePicker label="Purchase Date" required value={form.date} onChange={(v) => setForm({ ...form, date: v })} />
           <Select
             label="Vendor"
             required
@@ -398,7 +420,7 @@ export default function PurchasesPage() {
             value={form.paymentMode}
             onChange={(e) => setForm({ ...form, paymentMode: e.target.value })}
           />
-          <Input label="Due Date" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+          <DatePicker label="Due Date" value={form.dueDate} onChange={(v) => setForm({ ...form, dueDate: v })} />
           <Textarea
             label="Remark"
             className="sm:col-span-2"
@@ -460,12 +482,11 @@ export default function PurchasesPage() {
         }
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input
+          <DatePicker
             label="Purchase Date"
-            type="date"
             required
             value={editForm.date}
-            onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+            onChange={(v) => setEditForm({ ...editForm, date: v })}
           />
           <Select
             label="Vendor"
@@ -537,11 +558,10 @@ export default function PurchasesPage() {
             value={editForm.paymentMode}
             onChange={(e) => setEditForm({ ...editForm, paymentMode: e.target.value })}
           />
-          <Input
+          <DatePicker
             label="Due Date"
-            type="date"
             value={editForm.dueDate}
-            onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+            onChange={(v) => setEditForm({ ...editForm, dueDate: v })}
           />
           <Textarea
             label="Remark"
@@ -577,6 +597,20 @@ export default function PurchasesPage() {
         title="Cancel Purchase Entry"
         description={`This will reverse the milk stock and vendor balance for bill "${cancelTarget?.billNo}". Continue?`}
         confirmLabel="Cancel Entry"
+      />
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Purchase Entry"
+        description={
+          deleteTarget?.status === "active"
+            ? `This will permanently delete bill "${deleteTarget?.billNo}" — its milk stock and vendor balance will be reversed first, same as cancelling, and this cannot be undone.`
+            : `This will permanently delete bill "${deleteTarget?.billNo}". This cannot be undone.`
+        }
+        confirmLabel="Delete"
       />
     </div>
   );

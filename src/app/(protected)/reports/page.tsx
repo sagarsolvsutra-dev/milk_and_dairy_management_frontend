@@ -7,6 +7,7 @@ import { Table, type Column } from "@/components/ui/Table";
 import { Pagination } from "@/components/ui/Pagination";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { cn, formatCurrency, formatDate, toDateInputValue } from "@/lib/utils";
@@ -143,8 +144,8 @@ export default function ReportsPage() {
       ) : (
         tab !== "stock" && (
           <div className="mb-4 flex flex-wrap items-end gap-3">
-            <Input label="From" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-            <Input label="To" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            <DatePicker label="From" value={from} onChange={setFrom} />
+            <DatePicker label="To" value={to} onChange={setTo} />
             <Button onClick={() => changePage(1)} loading={loading}>
               Apply
             </Button>

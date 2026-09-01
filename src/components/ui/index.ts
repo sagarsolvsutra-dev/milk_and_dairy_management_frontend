@@ -15,3 +15,4 @@ export * from "./PageHeader";
 export * from "./Card";
 export * from "./RowActions";
 export * from "./DateRangeFilter";
+export * from "./DatePicker";

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FiPlus, FiTrash2, FiPackage, FiDroplet } from "react-icons/fi";
-import { RowActions, ViewAction, EditAction, CancelAction } from "@/components/ui/RowActions";
+import { RowActions, ViewAction, EditAction, CancelAction, DeleteAction } from "@/components/ui/RowActions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { DateRangeFilter } from "@/components/ui/DateRangeFilter";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
@@ -71,8 +72,11 @@ export default function ProductionPage() {
   const [cancelTarget, setCancelTarget] = useState<ProductionEntry | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [viewing, setViewing] = useState<ProductionEntry | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProductionEntry | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const savingRef = useRef(false);
   const cancellingRef = useRef(false);
+  const deletingRef = useRef(false);
 
   const itemMap = useMemo(() => Object.fromEntries(items.map((i) => [i._id, i])), [items]);
 
@@ -194,6 +198,23 @@ export default function ProductionPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget || deletingRef.current) return;
+    deletingRef.current = true;
+    setDeleting(true);
+    try {
+      await productionService.remove(deleteTarget._id);
+      toast.success("Production entry deleted");
+      setDeleteTarget(null);
+      refetch();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      deletingRef.current = false;
+      setDeleting(false);
+    }
+  };
+
   const columns: Column<ProductionEntry>[] = [
     { header: "Date", accessor: (p) => formatDate(p.date) },
     { header: "Batch No.", accessor: (p) => <span className="font-mono text-xs">{p.batchNo}</span> },
@@ -218,6 +239,7 @@ export default function ProductionPage() {
           <ViewAction onClick={() => setViewing(p)} />
           {p.status === "active" && canEdit && <EditAction onClick={() => openEdit(p)} />}
           {p.status === "active" && canDelete && <CancelAction onClick={() => setCancelTarget(p)} />}
+          {canDelete && <DeleteAction title="Delete entry" onClick={() => setDeleteTarget(p)} />}
         </RowActions>
       ),
     },
@@ -274,12 +296,11 @@ export default function ProductionPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-wrap items-end gap-4">
-            <Input
+            <DatePicker
               label="Production Date"
-              type="date"
               required
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(v) => setDate(v)}
               wrapperClassName="flex-1"
             />
             <div className="rounded-lg border border-sky-100 bg-sky-50 px-4 py-2">
@@ -385,6 +406,20 @@ export default function ProductionPage() {
         title="Cancel Production Entry"
         description={`This will reverse the milk and item stock movements for batch "${cancelTarget?.batchNo}". Continue?`}
         confirmLabel="Cancel Entry"
+      />
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Production Entry"
+        description={
+          deleteTarget?.status === "active"
+            ? `This will permanently delete batch "${deleteTarget?.batchNo}" — its milk and item stock movements will be reversed first, same as cancelling, and this cannot be undone.`
+            : `This will permanently delete batch "${deleteTarget?.batchNo}". This cannot be undone.`
+        }
+        confirmLabel="Delete"
       />
     </div>
   );

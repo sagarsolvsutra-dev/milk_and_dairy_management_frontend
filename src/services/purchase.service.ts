@@ -8,4 +8,5 @@ export const purchaseService = {
   create: (payload: Record<string, unknown>) => api.post(API_ENDPOINTS.PURCHASES, payload),
   update: (id: string, payload: Record<string, unknown>) => api.put(API_ENDPOINTS.PURCHASE_BY_ID(id), payload),
   cancel: (id: string) => api.patch(API_ENDPOINTS.PURCHASE_CANCEL(id)),
+  remove: (id: string) => api.delete(API_ENDPOINTS.PURCHASE_BY_ID(id)),
 };

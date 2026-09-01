@@ -1,7 +1,7 @@
 "use client";
 
 import { FiX } from "react-icons/fi";
-import { Input } from "./Input";
+import { DatePicker } from "./DatePicker";
 
 export function DateRangeFilter({
   from,
@@ -18,8 +18,8 @@ export function DateRangeFilter({
 }) {
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <Input label="From" type="date" value={from} onChange={(e) => onFromChange(e.target.value)} wrapperClassName="w-40" />
-      <Input label="To" type="date" value={to} onChange={(e) => onToChange(e.target.value)} wrapperClassName="w-40" />
+      <DatePicker label="From" value={from} onChange={onFromChange} wrapperClassName="w-44" />
+      <DatePicker label="To" value={to} onChange={onToChange} wrapperClassName="w-44" />
       {(from || to) && (
         <button
           type="button"

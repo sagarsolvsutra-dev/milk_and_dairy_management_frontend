@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
@@ -321,7 +322,7 @@ export default function DispatchPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Dispatch Date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
+            <DatePicker label="Dispatch Date" required value={date} onChange={(v) => setDate(v)} />
             <Select
               label="Dairy"
               required

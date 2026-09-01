@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, StatCard } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { DetailPageSkeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
@@ -200,7 +201,7 @@ export default function VendorLedgerPage() {
         }
       >
         <form onSubmit={handleAddPayment} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Date" type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+          <DatePicker label="Date" required value={form.date} onChange={(v) => setForm({ ...form, date: v })} />
           <Input
             label="Amount"
             type="number"
