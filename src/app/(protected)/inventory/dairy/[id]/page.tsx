@@ -102,9 +102,9 @@ export default function DairyDetailPage() {
           onClick={() => router.back()}
           className="mb-3 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
         >
-          <FiArrowLeft className="h-4 w-4" /> પાછળ (Back)
+          <FiArrowLeft className="h-4 w-4" /> Back
         </button>
-        <p className="text-sm text-slate-500">ડેરી મળી નથી (Dairy not found).</p>
+        <p className="text-sm text-slate-500">Dairy not found.</p>
       </div>
     );
   }
@@ -112,48 +112,48 @@ export default function DairyDetailPage() {
   const { dairy, currentStock, currentStockPages, currentStockCount, currentStockTotal, totalDispatched, totalSold, totalSalesAmount } = summary;
 
   const stockColumns: Column<StockItem>[] = [
-    { header: "આઇટમ (Item)", accessor: (s) => <span className="font-medium text-slate-900">{s.item?.name}</span> },
-    { header: "કોડ (Code)", accessor: (s) => <span className="font-mono text-xs text-slate-500">{s.item?.code}</span> },
-    { header: "હાલનો સ્ટોક (Current Stock)", accessor: (s) => formatNumber(s.currentQty) },
+    { header: "Item", accessor: (s) => <span className="font-medium text-slate-900">{s.item?.name}</span> },
+    { header: "Code", accessor: (s) => <span className="font-mono text-xs text-slate-500">{s.item?.code}</span> },
+    { header: "Current Stock", accessor: (s) => formatNumber(s.currentQty) },
     {
-      header: "સ્થિતિ (Status)",
+      header: "Status",
       accessor: (s) =>
         s.currentQty <= (s.item?.minStockAlert ?? 0) ? (
-          <Badge tone="danger">ઓછો સ્ટોક (Low Stock)</Badge>
+          <Badge tone="danger">Low Stock</Badge>
         ) : (
-          <Badge tone="success">પૂરતો (Healthy)</Badge>
+          <Badge tone="success">Healthy</Badge>
         ),
     },
   ];
 
   const dispatchColumns: Column<DispatchEntry>[] = [
-    { header: "તારીખ (Date)", accessor: (d) => formatDate(d.date) },
-    { header: "ડિસ્પેચ નંબર (Dispatch No.)", accessor: (d) => <span className="font-mono text-xs">{d.dispatchNo}</span> },
+    { header: "Date", accessor: (d) => formatDate(d.date) },
+    { header: "Dispatch No.", accessor: (d) => <span className="font-mono text-xs">{d.dispatchNo}</span> },
     {
-      header: "આઇટમ (Items)",
+      header: "Items",
       accessor: (d) => d.items.map((i) => `${typeof i.item === "object" && i.item ? i.item.name : "-"} (${i.quantity})`).join(", "),
     },
     {
-      header: "સ્થિતિ (Status)",
+      header: "Status",
       accessor: (d) => (
         <Badge tone={d.status === "active" ? "success" : "danger"}>
-          {d.status === "active" ? "ચાલુ (Active)" : "રદ (Cancelled)"}
+          {d.status === "active" ? "Active" : "Cancelled"}
         </Badge>
       ),
     },
   ];
 
   const billColumns: Column<Bill>[] = [
-    { header: "તારીખ (Date)", accessor: (b) => formatDate(b.date) },
-    { header: "બિલ નંબર (Bill No.)", accessor: (b) => <span className="font-mono text-xs">{b.billNo}</span> },
-    { header: "ગ્રાહક (Customer)", accessor: (b) => b.customerName || "વૉક-ઇન (Walk-in)" },
-    { header: "આઇટમ (Items)", accessor: (b) => b.items.length },
-    { header: "કુલ રકમ (Grand Total)", accessor: (b) => formatCurrency(b.grandTotal) },
+    { header: "Date", accessor: (b) => formatDate(b.date) },
+    { header: "Bill No.", accessor: (b) => <span className="font-mono text-xs">{b.billNo}</span> },
+    { header: "Customer", accessor: (b) => b.customerName || "Walk-in" },
+    { header: "Items", accessor: (b) => b.items.length },
+    { header: "Grand Total", accessor: (b) => formatCurrency(b.grandTotal) },
     {
-      header: "સ્થિતિ (Status)",
+      header: "Status",
       accessor: (b) => (
         <Badge tone={b.status === "active" ? "success" : "danger"}>
-          {b.status === "active" ? "ચાલુ (Active)" : "રદ (Cancelled)"}
+          {b.status === "active" ? "Active" : "Cancelled"}
         </Badge>
       ),
     },
@@ -165,40 +165,40 @@ export default function DairyDetailPage() {
         onClick={() => router.back()}
         className="mb-3 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
       >
-        <FiArrowLeft className="h-4 w-4" /> પાછળ (Back)
+        <FiArrowLeft className="h-4 w-4" /> Back
       </button>
 
       <PageHeader
         title={dairy.name}
-        description={`${dairy.code} — ${dairy.mobile} — લોગિન આઈડી (Login ID): ${dairy.loginId}`}
+        description={`${dairy.code} — ${dairy.mobile} — Login ID: ${dairy.loginId}`}
         actions={
           <Badge tone={dairy.status === "active" ? "success" : "neutral"}>
-            {dairy.status === "active" ? "ચાલુ (Active)" : "બંધ (Inactive)"}
+            {dairy.status === "active" ? "Active" : "Inactive"}
           </Badge>
         }
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="હાલનો સ્ટોક - તમામ આઇટમ (Current Stock (all items))" value={formatNumber(currentStockTotal)} icon={<FiBox className="h-5 w-5" />} tone="indigo" />
-        <StatCard label="કુલ મોકલેલ (Total Ever Dispatched)" value={formatNumber(totalDispatched)} icon={<FiTruck className="h-5 w-5" />} tone="sky" />
-        <StatCard label="કુલ વેચેલ (Total Ever Sold)" value={formatNumber(totalSold)} icon={<FiShoppingBag className="h-5 w-5" />} tone="amber" />
-        <StatCard label="કુલ વેચાણ રકમ (Total Sales Amount)" value={formatCurrency(totalSalesAmount)} icon={<FiDollarSign className="h-5 w-5" />} tone="emerald" />
+        <StatCard label="Current Stock (all items)" value={formatNumber(currentStockTotal)} icon={<FiBox className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="Total Ever Dispatched" value={formatNumber(totalDispatched)} icon={<FiTruck className="h-5 w-5" />} tone="sky" />
+        <StatCard label="Total Ever Sold" value={formatNumber(totalSold)} icon={<FiShoppingBag className="h-5 w-5" />} tone="amber" />
+        <StatCard label="Total Sales Amount" value={formatCurrency(totalSalesAmount)} icon={<FiDollarSign className="h-5 w-5" />} tone="emerald" />
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700">હાલનો સ્ટોક (Current Stock)</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Current Stock</h2>
       <Card className="mb-2 p-0">
-        <Table columns={stockColumns} data={currentStock} keyField={(s) => s._id} loading={loading} emptyMessage="હજુ સ્ટોક આવ્યો નથી (No stock received yet)" />
+        <Table columns={stockColumns} data={currentStock} keyField={(s) => s._id} loading={loading} emptyMessage="No stock received yet" />
       </Card>
       <div className="mb-8">
         <Pagination page={stockPage} pages={currentStockPages} total={currentStockCount} onPageChange={setStockPage} />
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700">ડિસ્પેચ ઇતિહાસ (મુખ્યથી મળેલ) (Dispatch History (received from Central))</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Dispatch History (received from Central)</h2>
       <div className="mb-4">
         <SearchInput
           value={dispatchSearch}
           onChange={(v) => { setDispatchSearch(v); setDispatchPage(1); }}
-          placeholder="ડિસ્પેચ નંબરથી શોધો... (Search by dispatch no...)"
+          placeholder="Search by dispatch no..."
         />
       </div>
       <Card className="mb-2 p-0">
@@ -207,23 +207,23 @@ export default function DairyDetailPage() {
           data={dispatchHistory}
           keyField={(d) => d._id}
           loading={dispatchLoading}
-          emptyMessage="આ ડેરીમાં હજુ કોઈ ડિસ્પેચ નથી (No dispatches to this dairy yet)"
+          emptyMessage="No dispatches to this dairy yet"
         />
       </Card>
       <div className="mb-8">
         <Pagination page={dispatchPage} pages={dispatchPages} total={dispatchTotal} onPageChange={setDispatchPage} />
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700">બિલ ઇતિહાસ (ગ્રાહકોને વેચાણ) (Bill History (sold to customers))</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Bill History (sold to customers)</h2>
       <div className="mb-4">
         <SearchInput
           value={billSearch}
           onChange={(v) => { setBillSearch(v); setBillPage(1); }}
-          placeholder="બિલ નંબર કે ગ્રાહકથી શોધો... (Search by bill no. or customer...)"
+          placeholder="Search by bill no. or customer..."
         />
       </div>
       <Card className="mb-2 p-0">
-        <Table columns={billColumns} data={billHistory} keyField={(b) => b._id} loading={billLoading} emptyMessage="હજુ કોઈ બિલ નથી (No bills yet)" />
+        <Table columns={billColumns} data={billHistory} keyField={(b) => b._id} loading={billLoading} emptyMessage="No bills yet" />
       </Card>
       <Pagination page={billPage} pages={billPages} total={billTotal} onPageChange={setBillPage} />
     </div>

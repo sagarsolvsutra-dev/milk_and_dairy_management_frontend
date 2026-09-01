@@ -73,7 +73,7 @@ export function Sidebar({
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -99,7 +99,7 @@ export function Sidebar({
                   className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-50"
                 >
                   <span className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-wider text-slate-800">
-                    {group.title} <span className="text-slate-400">({group.titleEn})</span>
+                    {group.title}
                   </span>
                   <FiChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180")} />
                 </button>
@@ -113,7 +113,7 @@ export function Sidebar({
                           key={item.href}
                           href={item.href}
                           onClick={onClose}
-                          title={item.labelEn}
+                          title={item.label}
                           className={cn(
                             "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition-colors",
                             active
@@ -123,7 +123,7 @@ export function Sidebar({
                         >
                           <Icon className={cn("h-4 w-4 shrink-0", active ? "text-indigo-600" : "text-slate-400")} />
                           <span className={cn("min-w-0 truncate text-sm font-semibold", active ? "text-indigo-700" : "text-slate-900")}>
-                            {item.label} <span className={active ? "text-indigo-500" : "text-slate-500"}>({item.labelEn})</span>
+                            {item.label}
                           </span>
                         </Link>
                       );

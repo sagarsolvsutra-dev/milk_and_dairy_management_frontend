@@ -76,7 +76,7 @@ function resolveCell<T>(column: Column<T>, row: T, index: number): React.ReactNo
 // every table in this app puts row actions in the last column, so detecting
 // it by header text (rather than requiring a new prop on every call site)
 // lets every existing <Table> pick up the mobile card view for free.
-const isActionsColumn = (header: string) => /action|ક્રિયા/i.test(header);
+const isActionsColumn = (header: string) => /action/i.test(header);
 
 export function Table<T>({
   columns,
@@ -85,7 +85,7 @@ export function Table<T>({
   loading,
   isLoading,
   skeletonRowsCount = 6,
-  emptyMessage = "કોઈ માહિતી નથી (No records found)",
+  emptyMessage = "No records found",
   onRowClick,
   pagination,
 }: TableProps<T>) {
@@ -225,7 +225,7 @@ export function Table<T>({
                       }}
                       className="mt-2.5 flex items-center gap-1 text-xs font-medium text-indigo-600"
                     >
-                      વિગત (Details) <FiChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
+                      Details <FiChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
                     </button>
                     {isOpen && (
                       <div className="mt-2.5 space-y-1.5 border-t border-slate-100 pt-2.5" onClick={(e) => e.stopPropagation()}>

@@ -119,7 +119,7 @@ export function ChartsGridSkeleton({ count = 4 }: { count?: number }) {
 export function AppShellSkeleton() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50/50">
-      <div className="hidden w-72 shrink-0 border-r border-slate-200 bg-white p-4 lg:block">
+      <div className="hidden w-56 shrink-0 border-r border-slate-200 bg-white p-4 lg:block">
         <Skeleton className="mb-6 h-8 w-32" />
         <div className="space-y-3">
           {Array.from({ length: 8 }).map((_, i) => (

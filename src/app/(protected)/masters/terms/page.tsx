@@ -9,16 +9,16 @@ export default function TermsPage() {
     <SimpleMasterManager
       endpoint={API_ENDPOINTS.MASTER_TERMS}
       module="terms"
-      title="નિયમો અને શરતો (Terms & Conditions)"
-      singularLabel="શરત (Term)"
-      description="બિલ પર છપાતી મૂળભૂત નિયમો અને શરતો (Default terms and conditions printed on bills)"
-      addLabel="નિયમો ઉમેરો (Add Terms)"
-      searchPlaceholder="નિયમો શોધો... (Search terms...)"
+      title="Terms & Conditions"
+      singularLabel="Term"
+      description="Default terms and conditions printed on bills"
+      addLabel="Add Terms"
+      searchPlaceholder="Search terms..."
       fields={[
-        { name: "title", label: "શીર્ષક (Title)", required: true, span: 2, validate: (v) => validateMinLength(v.trim(), 2, "Title") },
+        { name: "title", label: "Title", required: true, span: 2, validate: (v) => validateMinLength(v.trim(), 2, "Title") },
         {
           name: "content",
-          label: "વિગત (Content)",
+          label: "Content",
           type: "textarea",
           required: true,
           span: 2,
@@ -26,9 +26,9 @@ export default function TermsPage() {
         },
       ]}
       displayColumns={[
-        { header: "શીર્ષક (Title)", render: (row) => <span className="font-medium text-slate-900">{String(row.title)}</span> },
+        { header: "Title", render: (row) => <span className="font-medium text-slate-900">{String(row.title)}</span> },
         {
-          header: "વિગત (Content)",
+          header: "Content",
           render: (row) => <span className="line-clamp-1 max-w-xs text-slate-500">{String(row.content)}</span>,
         },
       ]}

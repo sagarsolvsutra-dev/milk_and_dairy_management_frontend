@@ -146,13 +146,13 @@ export default function DispatchPage() {
 
     rows.forEach((r, i) => {
       if (!r.item && !r.quantity) return;
-      if (!r.item) nextErrors[i] = "આઇટમ પસંદ કરો (Select an item)";
-      else if (!r.quantity || Number(r.quantity) <= 0) nextErrors[i] = "જથ્થો 0 કરતાં વધારે હોવો જોઈએ (Quantity must be greater than 0)";
+      if (!r.item) nextErrors[i] = "Select an item";
+      else if (!r.quantity || Number(r.quantity) <= 0) nextErrors[i] = "Quantity must be greater than 0";
       // Only enforced on create — editing an existing dispatch changes what
       // "available" means (some of this item is already committed to it),
       // so the hint below still shows but doesn't hard-block here.
       else if (!editTarget && requestedByItem[r.item] > (centralStock[r.item] ?? 0)) {
-        nextErrors[i] = `મુખ્ય સ્ટોકમાં ફક્ત ${centralStock[r.item] ?? 0} ઉપલબ્ધ છે (Only ${centralStock[r.item] ?? 0} available in central stock)`;
+        nextErrors[i] = `Only ${centralStock[r.item] ?? 0} available in central stock`;
       }
     });
     return { errors: nextErrors, isValid: Object.keys(nextErrors).length === 0, blank: false };
@@ -171,11 +171,11 @@ export default function DispatchPage() {
       return;
     }
     if (blank) {
-      toast.warning("ઓછામાં ઓછી એક આઇટમ જથ્થા સાથે ઉમેરો (Add at least one item with quantity)");
+      toast.warning("Add at least one item with quantity");
       return;
     }
     if (!isValid) {
-      toast.error("લાલ બતાવેલ પંક્તિઓ સુધારો (Please fix the highlighted rows)");
+      toast.error("Please fix the highlighted rows");
       return;
     }
     const validRows = rows.filter((r) => r.item && Number(r.quantity) > 0);
@@ -192,10 +192,10 @@ export default function DispatchPage() {
       };
       if (editTarget) {
         await dispatchService.update(editTarget._id, payload);
-        toast.success("ડિસ્પેચ એન્ટ્રી અપડેટ થઈ (Dispatch entry updated)");
+        toast.success("Dispatch entry updated");
       } else {
         await dispatchService.create(payload);
-        toast.success("ડિસ્પેચ એન્ટ્રી સફળતાપૂર્વક સેવ થઈ (Dispatch entry saved successfully)");
+        toast.success("Dispatch entry saved successfully");
       }
       setDialogOpen(false);
       refetch();
@@ -214,7 +214,7 @@ export default function DispatchPage() {
     setCancelling(true);
     try {
       await dispatchService.cancel(cancelTarget._id);
-      toast.success("ડિસ્પેચ એન્ટ્રી રદ થઈ (Dispatch entry cancelled)");
+      toast.success("Dispatch entry cancelled");
       setCancelTarget(null);
       refetch();
     } catch (err) {
@@ -226,10 +226,10 @@ export default function DispatchPage() {
   };
 
   const columns: Column<DispatchEntry>[] = [
-    { header: "તારીખ (Date)", accessor: (d) => formatDate(d.date) },
-    { header: "ડિસ્પેચ નંબર (Dispatch No.)", accessor: (d) => <span className="font-mono text-xs">{d.dispatchNo}</span> },
+    { header: "Date", accessor: (d) => formatDate(d.date) },
+    { header: "Dispatch No.", accessor: (d) => <span className="font-mono text-xs">{d.dispatchNo}</span> },
     {
-      header: "ડેરી (Dairy)",
+      header: "Dairy",
       primary: true,
       accessor: (d) =>
         typeof d.dairy === "object" && d.dairy ? (
@@ -237,7 +237,7 @@ export default function DispatchPage() {
             href={`/inventory/dairy/${d.dairy._id}`}
             className="font-medium text-indigo-600 hover:underline"
             onClick={(e) => e.stopPropagation()}
-            title="આ ડેરીનો સંપૂર્ણ સ્ટોક, ડિસ્પેચ અને બિલ ઇતિહાસ જુઓ (View this dairy's full stock, dispatch and bill history)"
+            title="View this dairy's full stock, dispatch and bill history"
           >
             {d.dairy.name}
           </Link>
@@ -246,20 +246,20 @@ export default function DispatchPage() {
         ),
     },
     {
-      header: "આઇટમ (Items)",
+      header: "Items",
       accessor: (d) => (
         <span className="whitespace-normal">
           {d.items.map((row) => (typeof row.item === "object" && row.item ? row.item.name : "-") + ` (${row.quantity})`).join(", ")}
         </span>
       ),
     },
-    { header: "વાહન નંબર (Vehicle No.)", accessor: (d) => d.vehicleNo || "-" },
+    { header: "Vehicle No.", accessor: (d) => d.vehicleNo || "-" },
     {
-      header: "સ્થિતિ (Status)",
-      accessor: (d) => <Badge tone={d.status === "active" ? "success" : "danger"}>{d.status === "active" ? "ચાલુ (Active)" : "રદ (Cancelled)"}</Badge>,
+      header: "Status",
+      accessor: (d) => <Badge tone={d.status === "active" ? "success" : "danger"}>{d.status === "active" ? "Active" : "Cancelled"}</Badge>,
     },
     {
-      header: "ક્રિયા (Actions)",
+      header: "Actions",
       accessor: (d) => (
         <RowActions>
           <ViewAction onClick={() => setViewing(d)} />
@@ -273,24 +273,24 @@ export default function DispatchPage() {
   return (
     <div>
       <PageHeader
-        title="ડેરી પ્રમાણે ડિસ્પેચ (Dairy-wise Dispatch)"
-        description="મુખ્ય સ્ટોકમાંથી આઇટમ ડેરી શાખાઓમાં ફાળવો (Allocate items from central stock to dairy branches)"
+        title="Dairy-wise Dispatch"
+        description="Allocate items from central stock to dairy branches"
         actions={
           canAdd ? (
             <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
-              નવો ડિસ્પેચ (New Dispatch)
+              New Dispatch
             </Button>
           ) : undefined
         }
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <StatCard label="કુલ ડિસ્પેચ (Total Dispatches)" value={summary?.count ?? 0} icon={<FiTruck className="h-5 w-5" />} tone="indigo" />
-        <StatCard label="કુલ ડિસ્પેચ થયેલ આઇટમ (Total Items Dispatched)" value={summary?.totalItemsDispatched ?? 0} icon={<FiBox className="h-5 w-5" />} tone="sky" />
+        <StatCard label="Total Dispatches" value={summary?.count ?? 0} icon={<FiTruck className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="Total Items Dispatched" value={summary?.totalItemsDispatched ?? 0} icon={<FiBox className="h-5 w-5" />} tone="sky" />
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="ડિસ્પેચ નંબર, ડેરી, આઇટમ, વાહન, ડ્રાઈવર, સ્થિતિ, નોંધથી શોધો... (Search by dispatch no, dairy, item, vehicle, driver, status, remark...)" />
+        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search by dispatch no, dairy, item, vehicle, driver, status, remark..." />
         <DateRangeFilter
           from={from}
           to={to}
@@ -300,46 +300,46 @@ export default function DispatchPage() {
         />
       </div>
 
-      <Table columns={columns} data={dispatches} keyField={(d) => d._id} loading={loading} emptyMessage="હજુ કોઈ ડિસ્પેચ એન્ટ્રી નથી (No dispatch entries yet)" />
+      <Table columns={columns} data={dispatches} keyField={(d) => d._id} loading={loading} emptyMessage="No dispatch entries yet" />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editTarget ? `ડિસ્પેચ ફેરફાર (Edit Dispatch) ${editTarget.dispatchNo}` : "નવી ડિસ્પેચ એન્ટ્રી (New Dispatch Entry)"}
+        title={editTarget ? `Edit Dispatch ${editTarget.dispatchNo}` : "New Dispatch Entry"}
         size="lg"
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              રદ કરો (Cancel)
+              Cancel
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editTarget ? "ફેરફાર સેવ કરો (Save Changes)" : "ડિસ્પેચ સેવ કરો (Save Dispatch)"}
+              {editTarget ? "Save Changes" : "Save Dispatch"}
             </Button>
           </>
         }
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="ડિસ્પેચની તારીખ (Dispatch Date)" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input label="Dispatch Date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
             <Select
-              label="ડેરી (Dairy)"
+              label="Dairy"
               required
               error={dairyError}
               options={dairies.map((d) => ({ label: `${d.name} (${d.code})`, value: d._id }))}
               value={dairy}
               onChange={(e) => setDairy(e.target.value)}
             />
-            <Input label="વાહન નંબર - વૈકલ્પિક (Vehicle No., optional)" value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value)} />
-            <Input label="ડ્રાઈવરનું નામ - વૈકલ્પિક (Driver Name, optional)" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+            <Input label="Vehicle No., optional" value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value)} />
+            <Input label="Driver Name, optional" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-700">ડિસ્પેચ કરવાની આઇટમ (Items to Dispatch)</p>
+            <p className="text-sm font-medium text-slate-700">Items to Dispatch</p>
             <div className="flex items-start gap-2">
-              <p className="flex-[2] text-xs font-medium text-slate-500">આઇટમ (Item)</p>
-              <p className="w-28 shrink-0 text-xs font-medium text-slate-500">જથ્થો (Quantity)</p>
-              <p className="w-28 shrink-0 text-xs font-medium text-slate-500">સ્ટોકમાં (In Stock)</p>
+              <p className="flex-[2] text-xs font-medium text-slate-500">Item</p>
+              <p className="w-28 shrink-0 text-xs font-medium text-slate-500">Quantity</p>
+              <p className="w-28 shrink-0 text-xs font-medium text-slate-500">In Stock</p>
               <span className="w-9 shrink-0" aria-hidden="true" />
             </div>
             {rows.map((row, i) => {
@@ -355,7 +355,7 @@ export default function DispatchPage() {
                     options={items.map((it) => ({ label: `${it.name} (${it.code})`, value: it._id }))}
                     value={row.item}
                     onChange={(e) => updateRow(i, { item: e.target.value })}
-                    placeholder="આઇટમ પસંદ કરો (Select item)"
+                    placeholder="Select item"
                     error={rowErrors[i]}
                   />
                   <Input
@@ -363,7 +363,7 @@ export default function DispatchPage() {
                     type="number"
                     step="0.01"
                     min="0.01"
-                    placeholder="જથ્થો (Quantity)"
+                    placeholder="Quantity"
                     value={row.quantity}
                     onChange={(e) => updateRow(i, { quantity: e.target.value })}
                   />
@@ -382,7 +382,7 @@ export default function DispatchPage() {
                       <>
                         <span className="text-base font-bold">{available}</span>
                         <span className="text-[10px] font-medium uppercase tracking-wide">
-                          {available <= 0 ? "સ્ટોક ખાલી (Out of stock)" : overLimit ? "પૂરતું નથી (Not enough)" : "સ્ટોકમાં (In stock)"}
+                          {available <= 0 ? "Out of stock" : overLimit ? "Not enough" : "In stock"}
                         </span>
                       </>
                     )}
@@ -401,30 +401,30 @@ export default function DispatchPage() {
               );
             })}
             <Button type="button" variant="outline" size="sm" icon={<FiPlus className="h-3.5 w-3.5" />} onClick={addRow}>
-              આઇટમ ઉમેરો (Add Item)
+              Add Item
             </Button>
           </div>
 
-          <Textarea label="નોંધ (Remark)" value={remark} onChange={(e) => setRemark(e.target.value)} />
+          <Textarea label="Remark" value={remark} onChange={(e) => setRemark(e.target.value)} />
         </form>
       </Dialog>
 
-      <Dialog open={Boolean(viewing)} onClose={() => setViewing(null)} title={`ડિસ્પેચ (Dispatch) ${viewing?.dispatchNo || ""}`} size="md">
+      <Dialog open={Boolean(viewing)} onClose={() => setViewing(null)} title={`Dispatch ${viewing?.dispatchNo || ""}`} size="md">
         {viewing && (
           <div className="space-y-3 text-sm">
             <p className="text-slate-500">
-              પ્રતિ (To): {typeof viewing.dairy === "object" && viewing.dairy ? viewing.dairy.name : "-"} — {formatDate(viewing.date)}
+              To: {typeof viewing.dairy === "object" && viewing.dairy ? viewing.dairy.name : "-"} — {formatDate(viewing.date)}
             </p>
             <div className="divide-y divide-slate-100 rounded-lg border border-slate-100">
               {viewing.items.map((row, i) => (
                 <div key={i} className="flex items-center justify-between px-3 py-2">
-                  <span>{typeof row.item === "object" && row.item ? row.item.name : "કાઢી નાખેલ આઇટમ (Deleted item)"}</span>
-                  <span className="text-slate-500">{row.quantity} યુનિટ (units)</span>
+                  <span>{typeof row.item === "object" && row.item ? row.item.name : "Deleted item"}</span>
+                  <span className="text-slate-500">{row.quantity} units</span>
                 </div>
               ))}
             </div>
-            {viewing.vehicleNo && <p className="text-slate-500">વાહન (Vehicle): {viewing.vehicleNo}</p>}
-            {viewing.driverName && <p className="text-slate-500">ડ્રાઈવર (Driver): {viewing.driverName}</p>}
+            {viewing.vehicleNo && <p className="text-slate-500">Vehicle: {viewing.vehicleNo}</p>}
+            {viewing.driverName && <p className="text-slate-500">Driver: {viewing.driverName}</p>}
           </div>
         )}
       </Dialog>
@@ -434,9 +434,9 @@ export default function DispatchPage() {
         onClose={() => setCancelTarget(null)}
         onConfirm={handleCancel}
         loading={cancelling}
-        title="ડિસ્પેચ એન્ટ્રી રદ કરો (Cancel Dispatch Entry)"
-        description={`આ ડિસ્પેચ "${cancelTarget?.dispatchNo}" માટે મુખ્ય અને ડેરી સ્ટોકની હિલચાલ પાછી આવશે. ચાલુ રાખવું છે? (This will reverse the central and dairy stock movements for dispatch "${cancelTarget?.dispatchNo}". Continue?)`}
-        confirmLabel="એન્ટ્રી રદ કરો (Cancel Entry)"
+        title="Cancel Dispatch Entry"
+        description={`This will reverse the central and dairy stock movements for dispatch "${cancelTarget?.dispatchNo}". Continue?`}
+        confirmLabel="Cancel Entry"
       />
     </div>
   );

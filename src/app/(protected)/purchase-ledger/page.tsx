@@ -50,10 +50,10 @@ export default function PurchaseLedgerPage() {
   }, [page]);
 
   const columns: Column<OutstandingRow>[] = [
-    { header: "વેન્ડર (Vendor)", accessor: (r) => <span className="font-medium text-slate-900">{r.vendor.name}</span> },
-    { header: "મોબાઇલ નંબર (Mobile)", accessor: (r) => r.vendor.mobile },
+    { header: "Vendor", accessor: (r) => <span className="font-medium text-slate-900">{r.vendor.name}</span> },
+    { header: "Mobile", accessor: (r) => r.vendor.mobile },
     {
-      header: "બાકી રકમ (Outstanding)",
+      header: "Outstanding",
       accessor: (r) => (
         <span className={r.outstanding > 0 ? "font-semibold text-red-600" : "font-semibold text-emerald-600"}>
           {formatCurrency(r.outstanding)}
@@ -61,20 +61,20 @@ export default function PurchaseLedgerPage() {
       ),
     },
     {
-      header: "ઉંમર (Ageing)",
+      header: "Ageing",
       accessor: (r) => (
         <Badge tone={r.ageBucket === "30+" ? "danger" : r.ageBucket === "16-30" ? "warning" : "success"}>
-          {r.ageBucket} દિવસ (days)
+          {r.ageBucket} days
         </Badge>
       ),
     },
-    { header: "સૌથી જૂની બાકી (Oldest Unpaid)", accessor: (r) => formatDate(r.oldestUnpaidDate) },
+    { header: "Oldest Unpaid", accessor: (r) => formatDate(r.oldestUnpaidDate) },
     {
-      header: "ક્રિયા (Actions)",
+      header: "Actions",
       accessor: (r) => (
         <Link href={`/masters/vendors/${r.vendor._id}/ledger`}>
           <Button variant="outline" size="sm" icon={<FiBookOpen className="h-3.5 w-3.5" />}>
-            ખાતાવહી જુઓ (View Ledger)
+            View Ledger
           </Button>
         </Link>
       ),
@@ -83,16 +83,16 @@ export default function PurchaseLedgerPage() {
 
   return (
     <div>
-      <PageHeader title="ખરીદી ખાતાવહી (Purchase Ledger)" description="વેન્ડર પ્રમાણે બાકી રકમ અને ઉંમર વિશ્લેષણ (Vendor-wise outstanding balances and ageing analysis)" />
+      <PageHeader title="Purchase Ledger" description="Vendor-wise outstanding balances and ageing analysis" />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="કુલ બાકી - આ પાનું (Total Outstanding, this page)" value={formatCurrency(totalOutstanding)} tone="red" />
-        <StatCard label="બાકી ધરાવતા વેન્ડર (Vendors with Dues)" value={total} tone="amber" />
-        <StatCard label="મુદતવીતી - આ પાનું (Overdue, this page)" value={overdueCount} tone="red" />
+        <StatCard label="Total Outstanding, this page" value={formatCurrency(totalOutstanding)} tone="red" />
+        <StatCard label="Vendors with Dues" value={total} tone="amber" />
+        <StatCard label="Overdue, this page" value={overdueCount} tone="red" />
       </div>
 
       <Card className="mb-2 p-0">
-        <Table columns={columns} data={rows} keyField={(r) => r.vendor._id} loading={loading} emptyMessage="કોઈ બાકી રકમ નથી — બધા વેન્ડરના હિસાબ પૂરા (No outstanding balances — all vendors settled)" />
+        <Table columns={columns} data={rows} keyField={(r) => r.vendor._id} loading={loading} emptyMessage="No outstanding balances — all vendors settled" />
       </Card>
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
     </div>

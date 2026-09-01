@@ -65,7 +65,7 @@ export function ProfileDialog({ open, onClose }: { open: boolean; onClose: () =>
     });
     setErrors(fieldErrors);
     if (!isValid) {
-      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
+      toast.error("Please fix the highlighted fields");
       return;
     }
 
@@ -73,7 +73,7 @@ export function ProfileDialog({ open, onClose }: { open: boolean; onClose: () =>
     setSaving(true);
     try {
       await authService.changePassword(form.currentPassword, form.newPassword);
-      toast.success("પાસવર્ડ બદલાયો (Password changed successfully)");
+      toast.success("Password changed successfully");
       setForm(emptyForm);
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -86,46 +86,46 @@ export function ProfileDialog({ open, onClose }: { open: boolean; onClose: () =>
   const display = me || user;
 
   return (
-    <Dialog open={open} onClose={onClose} title="મારી પ્રોફાઇલ (My Profile)" size="sm">
+    <Dialog open={open} onClose={onClose} title="My Profile" size="sm">
       <div className="space-y-5">
         <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm">
           {loadingMe ? (
-            <p className="text-slate-400">લોડ થાય છે... (Loading...)</p>
+            <p className="text-slate-400">Loading...</p>
           ) : (
             <div className="space-y-1">
-              <Row label="નામ (Name)" value={display?.name} />
-              <Row label="લોગિન ID (Login ID)" value={display?.loginId} />
-              {display?.email && <Row label="ઈમેલ (Email)" value={display.email} />}
-              <Row label="હોદ્દો (Role)" value={me?.roleTitle || display?.role?.replace("_", " ")} />
+              <Row label="Name" value={display?.name} />
+              <Row label="Login ID" value={display?.loginId} />
+              {display?.email && <Row label="Email" value={display.email} />}
+              <Row label="Role" value={me?.roleTitle || display?.role?.replace("_", " ")} />
             </div>
           )}
         </div>
 
         <form onSubmit={handleChangePassword} className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-700">પાસવર્ડ બદલો (Change Password)</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Change Password</h3>
           <PasswordInput
-            label="હાલનો પાસવર્ડ (Current Password)"
+            label="Current Password"
             required
             error={errors.currentPassword}
             value={form.currentPassword}
             onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
           />
           <PasswordInput
-            label="નવો પાસવર્ડ (New Password)"
+            label="New Password"
             required
             error={errors.newPassword}
             value={form.newPassword}
             onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
           />
           <PasswordInput
-            label="નવો પાસવર્ડ ફરીથી (Confirm New Password)"
+            label="Confirm New Password"
             required
             error={errors.confirmPassword}
             value={form.confirmPassword}
             onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
           />
           <Button type="submit" className="w-full" loading={saving}>
-            પાસવર્ડ બદલો (Change Password)
+            Change Password
           </Button>
         </form>
       </div>

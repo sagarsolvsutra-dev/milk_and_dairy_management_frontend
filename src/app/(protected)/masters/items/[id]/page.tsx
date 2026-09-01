@@ -16,14 +16,14 @@ import { formatCurrency, formatDateTime } from "@/lib/utils";
 import type { Item, ConsolidatedStockItem, StockLedgerEntry } from "@/types";
 
 const TRANSACTION_LABELS: Record<StockLedgerEntry["transactionType"], string> = {
-  purchase: "ખરીદી થઈ (Purchased)",
-  production_in: "ઉત્પાદન થયું (Produced)",
-  production_out: "દૂધ વપરાયું (Milk consumed)",
-  dispatch_out: "મોકલાયું (Dispatched out)",
-  dispatch_in: "ડેરી પર મળ્યું (Received at dairy)",
-  sale_out: "વેચાયું (Sold)",
-  sale_cancel_in: "વેચાણ રદ થયું (Sale cancelled)",
-  adjustment: "ગોઠવણ (Adjustment)",
+  purchase: "Purchased",
+  production_in: "Produced",
+  production_out: "Milk consumed",
+  dispatch_out: "Dispatched out",
+  dispatch_in: "Received at dairy",
+  sale_out: "Sold",
+  sale_cancel_in: "Sale cancelled",
+  adjustment: "Adjustment",
 };
 
 export default function ItemDetailPage() {
@@ -99,7 +99,7 @@ export default function ItemDetailPage() {
   }
 
   if (!item) {
-    return <p className="text-sm text-slate-500">આઇટમ મળી નથી (Item not found).</p>;
+    return <p className="text-sm text-slate-500">Item not found.</p>;
   }
 
   return (
@@ -108,33 +108,33 @@ export default function ItemDetailPage() {
         onClick={() => router.back()}
         className="mb-3 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
       >
-        <FiArrowLeft className="h-4 w-4" /> આઇટમ પર પાછા જાઓ (Back to Items)
+        <FiArrowLeft className="h-4 w-4" /> Back to Items
       </button>
 
       <PageHeader
         title={`${item.name} (${item.code})`}
-        description={`${item.category || "આઇટમ (Item)"} · ${formatCurrency(item.defaultSellingPrice)} per ${
+        description={`${item.category || "Item"} · ${formatCurrency(item.defaultSellingPrice)} per ${
           typeof item.unit === "object" && item.unit ? item.unit.shortCode : ""
         }`}
         actions={
-          <Badge tone={item.isActive ? "success" : "neutral"}>{item.isActive ? "ચાલુ (Active)" : "બંધ (Inactive)"}</Badge>
+          <Badge tone={item.isActive ? "success" : "neutral"}>{item.isActive ? "Active" : "Inactive"}</Badge>
         }
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="મુખ્ય સ્ટોક (Central Stock)" value={stockDetail?.centralStock ?? 0} icon={<FiBox className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="Central Stock" value={stockDetail?.centralStock ?? 0} icon={<FiBox className="h-5 w-5" />} tone="indigo" />
         <StatCard
-          label="બધી ડેરીમાં (Across All Dairies)"
+          label="Across All Dairies"
           value={stockDetail?.dairyStock.reduce((sum, d) => sum + d.qty, 0) ?? 0}
           icon={<FiTruck className="h-5 w-5" />}
           tone="sky"
         />
-        <StatCard label="કુલ સ્ટોક (Total Stock)" value={stockDetail?.totalStock ?? 0} icon={<FiBox className="h-5 w-5" />} tone="emerald" />
+        <StatCard label="Total Stock" value={stockDetail?.totalStock ?? 0} icon={<FiBox className="h-5 w-5" />} tone="emerald" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
-          <p className="mb-3 text-sm font-semibold text-slate-700">ડેરી પ્રમાણે સ્ટોક (Stock by Dairy)</p>
+          <p className="mb-3 text-sm font-semibold text-slate-700">Stock by Dairy</p>
           {stockDetail?.dairyStock.some((d) => d.qty > 0) ? (
             <div className="overflow-hidden rounded-lg border border-slate-100">
               {stockDetail.dairyStock
@@ -149,12 +149,12 @@ export default function ItemDetailPage() {
                 ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-400">હાલ કોઈપણ ડેરીમાં સ્ટોક નથી (No stock at any dairy right now).</p>
+            <p className="text-sm text-slate-400">No stock at any dairy right now.</p>
           )}
         </Card>
 
         <Card className="p-0 lg:col-span-2">
-          <p className="px-5 pt-5 text-sm font-semibold text-slate-700">સંપૂર્ણ હિલચાલ ઇતિહાસ (Full Movement History)</p>
+          <p className="px-5 pt-5 text-sm font-semibold text-slate-700">Full Movement History</p>
           <div className="mt-3 min-h-[16rem]">
             {ledgerLoading ? (
               <ListSkeleton rows={5} />
@@ -167,7 +167,7 @@ export default function ItemDetailPage() {
                       {entry.stockType === "dairy_item" && entry.dairy ? (
                         <span className="ml-1.5 text-xs font-normal text-slate-400">— {entry.dairy.name}</span>
                       ) : entry.stockType === "central_item" ? (
-                        <span className="ml-1.5 text-xs font-normal text-slate-400">— મુખ્ય (Central)</span>
+                        <span className="ml-1.5 text-xs font-normal text-slate-400">— Central</span>
                       ) : null}
                     </p>
                     <p className="text-xs text-slate-400">
@@ -180,13 +180,13 @@ export default function ItemDetailPage() {
                       {entry.quantity >= 0 ? "+" : ""}
                       {entry.quantity}
                     </p>
-                    <p className="text-xs text-slate-400">બાકી (Balance): {entry.balanceAfter}</p>
+                    <p className="text-xs text-slate-400">Balance: {entry.balanceAfter}</p>
                   </div>
                 </div>
               ))
             ) : (
               <p className="px-5 py-10 text-center text-sm text-slate-400">
-                હજુ આ આઇટમની કોઈ સ્ટોક હિલચાલ નોંધાઈ નથી (No stock movements recorded for this item yet).
+                No stock movements recorded for this item yet.
               </p>
             )}
           </div>

@@ -30,7 +30,7 @@ export function Select({
   error,
   hint,
   options,
-  placeholder = "પસંદ કરો... (Select...)",
+  placeholder = "Select...",
   value = "",
   onChange,
   required,
@@ -229,13 +229,13 @@ export function Select({
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleListKeyDown}
-                    placeholder="શોધો... (Search...)"
+                    placeholder="Search..."
                     className="h-8 w-full rounded-md border border-slate-200 pl-7 pr-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-100"
                   />
                 </div>
               </li>
             )}
-            {filtered.length === 0 && <li className="px-3 py-2 text-sm text-slate-400">કોઈ વિકલ્પ નથી (No options found)</li>}
+            {filtered.length === 0 && <li className="px-3 py-2 text-sm text-slate-400">No options found</li>}
             {filtered.map((opt, i) => {
               const isSelected = opt.value === value;
               return (

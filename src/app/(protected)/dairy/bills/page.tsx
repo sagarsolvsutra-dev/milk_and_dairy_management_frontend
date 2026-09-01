@@ -70,7 +70,7 @@ export default function BillHistoryPage() {
     setCancelling(true);
     try {
       await billService.cancel(cancelTarget._id);
-      toast.success("બિલ રદ થયું અને સ્ટોક પાછો આવ્યો (Bill cancelled and stock reversed)");
+      toast.success("Bill cancelled and stock reversed");
       setCancelTarget(null);
       refetch();
     } catch (err) {
@@ -82,19 +82,19 @@ export default function BillHistoryPage() {
   };
 
   const columns: Column<Bill>[] = [
-    { header: "તારીખ (Date)", accessor: (b) => formatDate(b.date) },
-    { header: "બિલ નંબર (Bill No.)", primary: true, accessor: (b) => <span className="font-mono text-xs">{b.billNo}</span> },
-    { header: "ગ્રાહક (Customer)", accessor: (b) => b.customerName || "વૉક-ઇન (Walk-in)" },
-    { header: "આઇટમ (Items)", accessor: (b) => b.items.length },
-    { header: "કુલ રકમ (Grand Total)", accessor: (b) => formatCurrency(b.grandTotal) },
+    { header: "Date", accessor: (b) => formatDate(b.date) },
+    { header: "Bill No.", primary: true, accessor: (b) => <span className="font-mono text-xs">{b.billNo}</span> },
+    { header: "Customer", accessor: (b) => b.customerName || "Walk-in" },
+    { header: "Items", accessor: (b) => b.items.length },
+    { header: "Grand Total", accessor: (b) => formatCurrency(b.grandTotal) },
     {
-      header: "સ્થિતિ (Status)",
+      header: "Status",
       accessor: (b) => (
-        <Badge tone={b.status === "active" ? "success" : "danger"}>{b.status === "active" ? "ચાલુ (Active)" : "રદ (Cancelled)"}</Badge>
+        <Badge tone={b.status === "active" ? "success" : "danger"}>{b.status === "active" ? "Active" : "Cancelled"}</Badge>
       ),
     },
     {
-      header: "ક્રિયા (Actions)",
+      header: "Actions",
       accessor: (b) => (
         <RowActions>
           <ViewAction onClick={() => setViewing(b)} />
@@ -106,20 +106,20 @@ export default function BillHistoryPage() {
 
   return (
     <div>
-      <PageHeader title="બિલ ઇતિહાસ (Bill History)" description="તમારી ડેરીના બધા બિલ (All counter bills for your dairy)" />
+      <PageHeader title="Bill History" description="All counter bills for your dairy" />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="કુલ બિલ (Total Bills)" value={summary?.count ?? 0} icon={<FiShoppingBag className="h-5 w-5" />} tone="indigo" />
-        <StatCard label="કુલ વેચાણ (Total Sales)" value={formatCurrency(summary?.totalSales)} icon={<FiDollarSign className="h-5 w-5" />} tone="sky" />
-        <StatCard label="ચૂકવેલ રકમ (Paid Amount)" value={formatCurrency(summary?.totalPaid)} icon={<FiCheckCircle className="h-5 w-5" />} tone="emerald" />
-        <StatCard label="બાકી રકમ (Pending Amount)" value={formatCurrency(summary?.totalBalance)} icon={<FiClock className="h-5 w-5" />} tone="red" />
+        <StatCard label="Total Bills" value={summary?.count ?? 0} icon={<FiShoppingBag className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="Total Sales" value={formatCurrency(summary?.totalSales)} icon={<FiDollarSign className="h-5 w-5" />} tone="sky" />
+        <StatCard label="Paid Amount" value={formatCurrency(summary?.totalPaid)} icon={<FiCheckCircle className="h-5 w-5" />} tone="emerald" />
+        <StatCard label="Pending Amount" value={formatCurrency(summary?.totalBalance)} icon={<FiClock className="h-5 w-5" />} tone="red" />
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <SearchInput
           value={search}
           onChange={(v) => { setSearch(v); setPage(1); }}
-          placeholder="બિલ નંબર, ગ્રાહક, મોબાઇલ, આઇટમ વગેરેથી શોધો... (Search by bill no, customer, mobile, item...)"
+          placeholder="Search by bill no, customer, mobile, item..."
         />
         <DateRangeFilter
           from={from}
@@ -130,33 +130,33 @@ export default function BillHistoryPage() {
         />
       </div>
 
-      <Table columns={columns} data={items} keyField={(b) => b._id} loading={loading} emptyMessage="હજુ કોઈ બિલ નથી (No bills yet)" />
+      <Table columns={columns} data={items} keyField={(b) => b._id} loading={loading} emptyMessage="No bills yet" />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
-      <Dialog open={Boolean(viewing)} onClose={() => setViewing(null)} title={`બિલ (Bill) ${viewing?.billNo || ""}`} size="md">
+      <Dialog open={Boolean(viewing)} onClose={() => setViewing(null)} title={`Bill ${viewing?.billNo || ""}`} size="md">
         {viewing && (
           <div className="space-y-3 text-sm">
             <p className="text-slate-500">
-              {viewing.customerName || "વૉક-ઇન (Walk-in)"} — {formatDate(viewing.date)}
+              {viewing.customerName || "Walk-in"} — {formatDate(viewing.date)}
             </p>
             <div className="divide-y divide-slate-100 rounded-lg border border-slate-100">
               {viewing.items.map((row, i) => (
                 <div key={i} className="flex items-center justify-between px-3 py-2">
-                  <span>{typeof row.item === "object" && row.item ? row.item.name : "કાઢી નાખેલ આઇટમ (Deleted item)"}</span>
+                  <span>{typeof row.item === "object" && row.item ? row.item.name : "Deleted item"}</span>
                   <span className="text-slate-500">
                     {row.quantity} × {formatCurrency(row.rate)} = {formatCurrency(row.amount)}
                   </span>
                 </div>
               ))}
             </div>
-            <p className="text-right font-semibold">કુલ રકમ (Grand Total): {formatCurrency(viewing.grandTotal)}</p>
+            <p className="text-right font-semibold">Grand Total: {formatCurrency(viewing.grandTotal)}</p>
 
             <div className="grid grid-cols-2 gap-2 pt-1">
               <Button variant="outline" icon={<FiPrinter className="h-4 w-4" />} onClick={handlePrint} loading={printing}>
-                પ્રિન્ટ કરો (Print)
+                Print
               </Button>
               <Button icon={<FiDownload className="h-4 w-4" />} onClick={handleDownloadPdf} loading={downloading}>
-                PDF ડાઉનલોડ કરો
+                Download PDF
               </Button>
             </div>
           </div>
@@ -168,9 +168,9 @@ export default function BillHistoryPage() {
         onClose={() => setCancelTarget(null)}
         onConfirm={handleCancel}
         loading={cancelling}
-        title="બિલ રદ કરો (Cancel Bill)"
-        description={`આ બિલ "${cancelTarget?.billNo}" માટે કાપેલો સ્ટોક પાછો ઉમેરાશે. ચાલુ રાખવું છે? (This will reverse the stock deducted for this bill. Continue?)`}
-        confirmLabel="બિલ રદ કરો (Cancel Bill)"
+        title="Cancel Bill"
+        description={`This will reverse the stock deducted for this bill. Continue?`}
+        confirmLabel="Cancel Bill"
       />
     </div>
   );

@@ -45,7 +45,7 @@ type SimpleMasterManagerProps = {
   /** Permission module key gating add/edit/delete on this master (view is enforced by the route guard). */
   module: string;
   title: string;
-  /** Singular form of the record name, used in the edit dialog title and save/add toasts (e.g. "એકમ (Unit)" for a title of "એકમ (Units)"). */
+  /** Singular form of the record name, used in the edit dialog title and save/add toasts (e.g. "Unit" for a title of "Units"). */
   singularLabel: string;
   description?: string;
   addLabel: string;
@@ -63,7 +63,7 @@ export function SimpleMasterManager({
   description,
   addLabel,
   fields,
-  searchPlaceholder = "શોધો... (Search...)",
+  searchPlaceholder = "Search...",
   hasToggle = true,
   displayColumns,
 }: SimpleMasterManagerProps) {
@@ -112,7 +112,7 @@ export function SimpleMasterManager({
     fields.forEach((f) => {
       const raw = form[f.name] ?? "";
       if (f.required && !raw.trim()) {
-        nextErrors[f.name] = `${f.label} જરૂરી છે (required)`;
+        nextErrors[f.name] = `${f.label} required`;
         return;
       }
       const customError = f.validate?.(raw);
@@ -126,7 +126,7 @@ export function SimpleMasterManager({
     const { errors: fieldErrors, isValid } = validate();
     setErrors(fieldErrors);
     if (!isValid) {
-      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
+      toast.error("Please fix the highlighted fields");
       return;
     }
     setSaving(true);
@@ -137,10 +137,10 @@ export function SimpleMasterManager({
       });
       if (editing) {
         await service.update(editing._id, payload);
-        toast.success(`${singularLabel} અપડેટ થયું (updated successfully)`);
+        toast.success(`${singularLabel} updated successfully`);
       } else {
         await service.create(payload);
-        toast.success(`${singularLabel} ઉમેરાયું (added successfully)`);
+        toast.success(`${singularLabel} added successfully`);
       }
       setDialogOpen(false);
       refetch();
@@ -174,7 +174,7 @@ export function SimpleMasterManager({
     setDeleting(true);
     try {
       await service.remove(deleteTarget._id);
-      toast.success("કાઢી નાખ્યું (Deleted successfully)");
+      toast.success("Deleted successfully");
       setDeleteTarget(null);
       refetch();
     } catch (err) {
@@ -190,9 +190,9 @@ export function SimpleMasterManager({
     ...(hasToggle
       ? [
           {
-            header: "સ્થિતિ (Status)",
+            header: "Status",
             accessor: (row: MasterRow) => (
-              <Badge tone={row.isActive ? "success" : "neutral"}>{row.isActive ? "ચાલુ (Active)" : "બંધ (Inactive)"}</Badge>
+              <Badge tone={row.isActive ? "success" : "neutral"}>{row.isActive ? "Active" : "Inactive"}</Badge>
             ),
           },
         ]
@@ -200,7 +200,7 @@ export function SimpleMasterManager({
     ...(canEdit || canDelete
       ? [
           {
-            header: "ક્રિયા (Actions)",
+            header: "Actions",
             accessor: (row: MasterRow) => (
               <RowActions>
                 {canEdit && <EditAction onClick={() => openEdit(row)} />}
@@ -239,14 +239,14 @@ export function SimpleMasterManager({
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editing ? `${singularLabel} ફેરફાર (Edit)` : addLabel}
+        title={editing ? `Edit ${singularLabel}` : addLabel}
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              રદ કરો (Cancel)
+              Cancel
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editing ? "ફેરફાર સેવ કરો (Save Changes)" : "ઉમેરો (Add)"}
+              {editing ? "Save Changes" : "Add"}
             </Button>
           </>
         }
@@ -302,9 +302,9 @@ export function SimpleMasterManager({
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         loading={deleting}
-        title={`${singularLabel} કાઢી નાખો (Delete)`}
-        description="શું તમે ખરેખર આ રેકોર્ડ કાઢી નાખવા માંગો છો? આ પાછું ફેરવી શકાશે નહીં. (Are you sure you want to delete this record? This cannot be undone.)"
-        confirmLabel="કાઢી નાખો (Delete)"
+        title={`Delete ${singularLabel}`}
+        description="Are you sure you want to delete this record? This cannot be undone."
+        confirmLabel="Delete"
       />
     </div>
   );

@@ -85,7 +85,7 @@ export default function TeamPage() {
       password: () =>
         !editing
           ? !form.password
-            ? "પાસવર્ડ જરૂરી છે (Password is required)"
+            ? "Password is required"
             : validateMinLength(form.password, 4, "Password")
           : undefined,
     });
@@ -95,7 +95,7 @@ export default function TeamPage() {
     const { errors: fieldErrors, isValid } = validate();
     setErrors(fieldErrors);
     if (!isValid) {
-      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
+      toast.error("Please fix the highlighted fields");
       return;
     }
     setSaving(true);
@@ -109,7 +109,7 @@ export default function TeamPage() {
           roleTitle: form.roleTitle,
           permissions,
         });
-        toast.success("ટીમ મેમ્બર સફળતાપૂર્વક અપડેટ થયું (Team member updated successfully)");
+        toast.success("Team member updated successfully");
       } else {
         await userService.create({
           name: form.name,
@@ -121,7 +121,7 @@ export default function TeamPage() {
           role: "staff",
           permissions,
         });
-        toast.success("ટીમ મેમ્બર સફળતાપૂર્વક બનાવવામાં આવ્યું (Team member created successfully)");
+        toast.success("Team member created successfully");
       }
       setDialogOpen(false);
       refetch();
@@ -154,7 +154,7 @@ export default function TeamPage() {
     setResetting(true);
     try {
       await userService.resetPassword(resetTarget._id, resetPassword);
-      toast.success("પાસવર્ડ સફળતાપૂર્વક રીસેટ થયો (Password reset successfully)");
+      toast.success("Password reset successfully");
       setResetTarget(null);
       setResetPassword("");
     } catch (err) {
@@ -166,18 +166,18 @@ export default function TeamPage() {
   };
 
   const columns: Column<TeamUser>[] = [
-    { header: "નામ (Name)", accessor: (u) => <span className="font-medium text-slate-900">{u.name}</span> },
-    { header: "હોદ્દાનું નામ (Role Title)", accessor: (u) => u.roleTitle || "-" },
-    { header: "લોગિન ID (Login ID)", accessor: (u) => u.loginId },
-    { header: "ઈમેલ (Email)", accessor: (u) => u.email },
-    { header: "મોબાઇલ નંબર (Mobile)", accessor: (u) => u.mobile },
-    { header: "છેલ્લો લોગિન (Last Login)", accessor: (u) => (u.lastLogin ? formatDateTime(u.lastLogin) : "ક્યારેય નહીં (Never)") },
+    { header: "Name", accessor: (u) => <span className="font-medium text-slate-900">{u.name}</span> },
+    { header: "Role Title", accessor: (u) => u.roleTitle || "-" },
+    { header: "Login ID", accessor: (u) => u.loginId },
+    { header: "Email", accessor: (u) => u.email },
+    { header: "Mobile", accessor: (u) => u.mobile },
+    { header: "Last Login", accessor: (u) => (u.lastLogin ? formatDateTime(u.lastLogin) : "Never") },
     {
-      header: "સ્થિતિ (Status)",
-      accessor: (u) => <Badge tone={u.isActive ? "success" : "neutral"}>{u.isActive ? "ચાલુ (Active)" : "બંધ (Inactive)"}</Badge>,
+      header: "Status",
+      accessor: (u) => <Badge tone={u.isActive ? "success" : "neutral"}>{u.isActive ? "Active" : "Inactive"}</Badge>,
     },
     {
-      header: "ક્રિયા (Actions)",
+      header: "Actions",
       accessor: (u) => (
         <RowActions>
           <EditAction onClick={() => openEdit(u)} />
@@ -191,34 +191,34 @@ export default function TeamPage() {
   return (
     <div>
       <PageHeader
-        title="ટીમ અને હોદ્દા વ્યવસ્થાપન (Team & Role Management)"
-        description="સ્ટાફ લોગિન બનાવો અને મોડ્યુલ પ્રમાણે પરવાનગી નિયંત્રિત કરો (Create staff logins and control module-wise permissions)"
+        title="Team & Role Management"
+        description="Create staff logins and control module-wise permissions"
         actions={
           <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
-            ટીમ મેમ્બર ઉમેરો (Add Team Member)
+            Add Team Member
           </Button>
         }
       />
 
       <div className="mb-4">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="નામ, લોગિન, મોબાઇલ, હોદ્દો, ઈમેલથી શોધો... (Search by name, login, mobile, role, email...)" />
+        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search by name, login, mobile, role, email..." />
       </div>
 
-      <Table columns={columns} data={items} keyField={(u) => u._id} loading={loading} emptyMessage="હજુ કોઈ ટીમ મેમ્બર ઉમેર્યું નથી (No team members added yet)" />
+      <Table columns={columns} data={items} keyField={(u) => u._id} loading={loading} emptyMessage="No team members added yet" />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editing ? "ટીમ મેમ્બર ફેરફાર કરો (Edit Team Member)" : "ટીમ મેમ્બર ઉમેરો (Add Team Member)"}
+        title={editing ? "Edit Team Member" : "Add Team Member"}
         size="xl"
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              રદ કરો (Cancel)
+              Cancel
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editing ? "ફેરફાર સેવ કરો (Save Changes)" : "મેમ્બર બનાવો (Create Member)"}
+              {editing ? "Save Changes" : "Create Member"}
             </Button>
           </>
         }
@@ -226,24 +226,24 @@ export default function TeamPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
-              label="પૂરું નામ (Full Name)"
+              label="Full Name"
               required
               error={errors.name}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             <Input
-              label="મોબાઇલ નંબર (Mobile Number)"
+              label="Mobile Number"
               required
               inputMode="numeric"
               maxLength={10}
-              hint="10 અંકનો મોબાઇલ નંબર (10-digit mobile number)"
+              hint="10-digit mobile number"
               error={errors.mobile}
               value={form.mobile}
               onChange={(e) => setForm({ ...form, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
             />
             <Input
-              label="ઈમેલ (Email)"
+              label="Email"
               type="email"
               required
               error={errors.email}
@@ -251,13 +251,13 @@ export default function TeamPage() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
             <Input
-              label="હોદ્દાનું નામ (Role Title)"
-              placeholder="દા.ત. પરચેઝ મેનેજર (e.g. Purchase Manager)"
+              label="Role Title"
+              placeholder="e.g. Purchase Manager"
               value={form.roleTitle}
               onChange={(e) => setForm({ ...form, roleTitle: e.target.value })}
             />
             <Input
-              label="લોગિન ID (Login ID)"
+              label="Login ID"
               required
               error={errors.loginId}
               value={form.loginId}
@@ -265,10 +265,10 @@ export default function TeamPage() {
             />
             {!editing && (
               <PasswordInput
-                label="પાસવર્ડ (Password)"
+                label="Password"
                 required
                 error={errors.password}
-                hint="ઓછામાં ઓછા 4 અક્ષર (At least 4 characters)"
+                hint="At least 4 characters"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
@@ -276,11 +276,10 @@ export default function TeamPage() {
           </div>
 
           <div>
-            <p className="mb-1 text-sm font-medium text-slate-700">મોડ્યુલ પરવાનગી (Module Permissions)</p>
+            <p className="mb-1 text-sm font-medium text-slate-700">Module Permissions</p>
             <p className="mb-2 text-xs text-slate-400">
-              સંપૂર્ણ ઍક્સેસ માટે મોડ્યુલની રો ચેકબોક્સ ટિક કરો, અથવા જુઓ/ઉમેરો/ફેરફાર/કાઢી નાખો અલગ-અલગ સેટ કરો. કોલમ હેડર એકસાથે બધા મોડ્યુલ
-              માટે તે ક્રિયા ટૉગલ કરે છે. (Tick a module&apos;s row checkbox for full access, or set View/Add/Edit/Delete
-              individually. Column headers toggle that action for every module at once.)
+              Tick a module&apos;s row checkbox for full access, or set View/Add/Edit/Delete
+              individually. Column headers toggle that action for every module at once.
             </p>
             <PermissionMatrix modules={modules} value={permissions} onChange={setPermissions} />
           </div>
@@ -290,21 +289,21 @@ export default function TeamPage() {
       <Dialog
         open={Boolean(resetTarget)}
         onClose={() => setResetTarget(null)}
-        title={`પાસવર્ડ રીસેટ કરો (Reset Password) — ${resetTarget?.name}`}
+        title={`Reset Password — ${resetTarget?.name}`}
         size="sm"
         footer={
           <>
             <Button variant="outline" onClick={() => setResetTarget(null)}>
-              રદ કરો (Cancel)
+              Cancel
             </Button>
             <Button onClick={handleResetPassword} loading={resetting}>
-              પાસવર્ડ રીસેટ કરો (Reset Password)
+              Reset Password
             </Button>
           </>
         }
       >
         <form onSubmit={handleResetPassword}>
-          <PasswordInput label="નવો પાસવર્ડ (New Password)" required value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} />
+          <PasswordInput label="New Password" required value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} />
         </form>
       </Dialog>
     </div>

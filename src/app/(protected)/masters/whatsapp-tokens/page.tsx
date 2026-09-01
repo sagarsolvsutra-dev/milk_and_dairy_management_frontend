@@ -16,40 +16,40 @@ export default function WhatsappTokensPage() {
     <SimpleMasterManager
       endpoint={API_ENDPOINTS.MASTER_WHATSAPP_TOKENS}
       module="whatsapp_token"
-      title="WhatsApp ટોકન (WhatsApp Tokens)"
-      singularLabel="WhatsApp ટોકન (WhatsApp Token)"
-      description="બિલ અને સૂચનાઓ મોકલવા માટે WhatsApp API ટોકન સંભાળો (Manage WhatsApp API tokens used to send bills and notifications)"
-      addLabel="ટોકન ઉમેરો (Add Token)"
-      searchPlaceholder="પ્રોવાઇડર અથવા નંબરથી શોધો... (Search by provider or number...)"
+      title="WhatsApp Tokens"
+      singularLabel="WhatsApp Token"
+      description="Manage WhatsApp API tokens used to send bills and notifications"
+      addLabel="Add Token"
+      searchPlaceholder="Search by provider or number..."
       fields={[
         {
           name: "provider",
-          label: "પ્રોવાઇડર (Provider)",
+          label: "Provider",
           type: "select",
           options: PROVIDER_OPTIONS,
           required: true,
         },
         {
           name: "senderNumber",
-          label: "મોકલનાર નંબર (Sender Number)",
+          label: "Sender Number",
           required: true,
-          placeholder: "દા.ત. 919876543210 (e.g. 919876543210)",
+          placeholder: "e.g. 919876543210",
           transform: (v) => v.replace(/\D/g, ""),
-          validate: (v) => (v.length < 10 ? "મોકલનાર નંબર માન્ય નથી (Sender number is invalid)" : undefined),
+          validate: (v) => (v.length < 10 ? "Sender number is invalid" : undefined),
         },
         {
           name: "apiToken",
-          label: "API ટોકન (API Token)",
+          label: "API Token",
           required: true,
           span: 2,
           validate: (v) => validateMinLength(v.trim(), 8, "API Token"),
         },
       ]}
       displayColumns={[
-        { header: "પ્રોવાઇડર (Provider)", render: (row) => <span className="font-medium text-slate-900">{String(row.provider)}</span> },
-        { header: "મોકલનાર નંબર (Sender Number)", render: (row) => String(row.senderNumber) },
+        { header: "Provider", render: (row) => <span className="font-medium text-slate-900">{String(row.provider)}</span> },
+        { header: "Sender Number", render: (row) => String(row.senderNumber) },
         {
-          header: "API ટોકન (API Token)",
+          header: "API Token",
           render: (row) => <span className="font-mono text-xs text-slate-500">{"•".repeat(8)}{String(row.apiToken).slice(-4)}</span>,
         },
       ]}

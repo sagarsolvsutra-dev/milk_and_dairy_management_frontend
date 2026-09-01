@@ -82,10 +82,10 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           {notifOpen && (
             <div className="absolute right-0 mt-2 w-80 rounded-lg border border-slate-100 bg-white shadow-lg">
               <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2.5">
-                <span className="text-sm font-semibold text-slate-800">સૂચનાઓ (Notifications)</span>
+                <span className="text-sm font-semibold text-slate-800">Notifications</span>
                 {unreadCount > 0 && (
                   <button onClick={handleMarkAllRead} className="text-xs font-medium text-indigo-600 hover:underline">
-                    બધું વાંચેલું ગણો (Mark all read)
+                    Mark all read
                   </button>
                 )}
               </div>
@@ -112,7 +112,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 ) : (
                   <div className="flex flex-col items-center gap-2 px-3 py-8 text-center">
                     <FiInbox className="h-6 w-6 text-slate-300" />
-                    <p className="text-xs text-slate-400">કોઈ સૂચના નથી (No notifications)</p>
+                    <p className="text-xs text-slate-400">No notifications</p>
                   </div>
                 )}
               </div>
@@ -150,13 +150,13 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
-                <FiUser className="h-4 w-4" /> મારી પ્રોફાઇલ (My Profile)
+                <FiUser className="h-4 w-4" /> My Profile
               </button>
               <button
                 onClick={logout}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
               >
-                <FiLogOut className="h-4 w-4" /> બહાર નીકળો (Logout)
+                <FiLogOut className="h-4 w-4" /> Logout
               </button>
             </div>
           )}

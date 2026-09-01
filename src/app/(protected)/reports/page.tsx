@@ -15,14 +15,14 @@ import { reportService, type ReportKey } from "@/services/report.service";
 import { useToast } from "@/components/ui/Toast";
 
 const REPORT_TABS: { key: ReportKey; label: string }[] = [
-  { key: "milk-purchase", label: "દૂધ ખરીદી (Milk Purchase)" },
-  { key: "production", label: "ઉત્પાદન (Production)" },
-  { key: "dispatch", label: "ડિસ્પેચ (Dispatch)" },
-  { key: "dairy-sales", label: "ડેરી વેચાણ (Dairy Sales)" },
-  { key: "item-wise-sales", label: "આઇટમ પ્રમાણે વેચાણ (Item-wise Sales)" },
-  { key: "stock", label: "સ્ટોક (Stock)" },
-  { key: "profit", label: "નફો (Profit)" },
-  { key: "monthly-yearly", label: "માસિક/વાર્ષિક (Monthly/Yearly)" },
+  { key: "milk-purchase", label: "Milk Purchase" },
+  { key: "production", label: "Production" },
+  { key: "dispatch", label: "Dispatch" },
+  { key: "dairy-sales", label: "Dairy Sales" },
+  { key: "item-wise-sales", label: "Item-wise Sales" },
+  { key: "stock", label: "Stock" },
+  { key: "profit", label: "Profit" },
+  { key: "monthly-yearly", label: "Monthly/Yearly" },
 ];
 
 function toCsv(rows: Record<string, unknown>[]): string {
@@ -99,8 +99,8 @@ export default function ReportsPage() {
   return (
     <div>
       <PageHeader
-        title="રિપોર્ટ (Reports)"
-        description="ખરીદી, ઉત્પાદન, ડિસ્પેચ, વેચાણ, સ્ટોક અને નફાના રિપોર્ટ (Purchase, production, dispatch, sales, stock and profit reports)"
+        title="Reports"
+        description="Purchase, production, dispatch, sales, stock and profit reports"
       />
 
       <div className="mb-4 flex flex-wrap gap-1.5 border-b border-slate-200">
@@ -121,32 +121,32 @@ export default function ReportsPage() {
       {tab === "monthly-yearly" ? (
         <div className="mb-4 flex flex-wrap items-end gap-3">
           <Input
-            label="વર્ષ (Year)"
+            label="Year"
             type="number"
             value={year}
             onChange={(e) => setYear(e.target.value)}
             wrapperClassName="w-32"
           />
           <Select
-            label="જૂથ (Group By)"
+            label="Group By"
             options={[
-              { label: "મહિના પ્રમાણે (Month)", value: "month" },
-              { label: "વર્ષ પ્રમાણે (Year)", value: "year" },
+              { label: "Month", value: "month" },
+              { label: "Year", value: "year" },
             ]}
             value={groupBy}
             onChange={(e) => setGroupBy(e.target.value as "month" | "year")}
           />
           <Button onClick={() => changePage(1)} loading={loading}>
-            લાગુ કરો (Apply)
+            Apply
           </Button>
         </div>
       ) : (
         tab !== "stock" && (
           <div className="mb-4 flex flex-wrap items-end gap-3">
-            <Input label="થી (From)" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-            <Input label="સુધી (To)" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            <Input label="From" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input label="To" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
             <Button onClick={() => changePage(1)} loading={loading}>
-              લાગુ કરો (Apply)
+              Apply
             </Button>
           </div>
         )
@@ -171,12 +171,12 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
   if (tab === "milk-purchase") {
     const d = data as { entries: any[]; totals: { quantity: number; amount: number } } | null;
     const columns: Column<any>[] = [
-      { header: "તારીખ (Date)", accessor: (r) => formatDate(r.date) },
-      { header: "બિલ નંબર (Bill No.)", accessor: (r) => r.billNo },
-      { header: "વેન્ડર (Vendor)", accessor: (r) => r.vendor?.name },
-      { header: "જથ્થો (Qty)", accessor: (r) => `${r.quantity} ${r.unit}` },
-      { header: "ભાવ (Rate)", accessor: (r) => formatCurrency(r.rate) },
-      { header: "ચૂકવવાપાત્ર (Net Payable)", accessor: (r) => formatCurrency(r.netPayable) },
+      { header: "Date", accessor: (r) => formatDate(r.date) },
+      { header: "Bill No.", accessor: (r) => r.billNo },
+      { header: "Vendor", accessor: (r) => r.vendor?.name },
+      { header: "Qty", accessor: (r) => `${r.quantity} ${r.unit}` },
+      { header: "Rate", accessor: (r) => formatCurrency(r.rate) },
+      { header: "Net Payable", accessor: (r) => formatCurrency(r.netPayable) },
     ];
     return (
       <>
@@ -195,10 +195,10 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
         {d && (
           <div className="flex justify-end gap-6 border-t border-slate-100 px-4 py-3 text-sm">
             <span>
-              કુલ જથ્થો (Total Qty): <strong>{d.totals.quantity}</strong>
+              Total Qty: <strong>{d.totals.quantity}</strong>
             </span>
             <span>
-              કુલ રકમ (Total Amount): <strong>{formatCurrency(d.totals.amount)}</strong>
+              Total Amount: <strong>{formatCurrency(d.totals.amount)}</strong>
             </span>
           </div>
         )}
@@ -209,10 +209,10 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
   if (tab === "production") {
     const d = data as { entries: any[]; totalMilkConsumed: number } | null;
     const columns: Column<any>[] = [
-      { header: "તારીખ (Date)", accessor: (r) => formatDate(r.date) },
-      { header: "બેચ નંબર (Batch No.)", accessor: (r) => r.batchNo },
-      { header: "આઇટમ (Items)", accessor: (r) => r.items?.length ?? 0 },
-      { header: "વપરાયેલું દૂધ (Milk Consumed)", accessor: (r) => `${(r.totalMilkConsumed ?? 0).toFixed(2)} KG` },
+      { header: "Date", accessor: (r) => formatDate(r.date) },
+      { header: "Batch No.", accessor: (r) => r.batchNo },
+      { header: "Items", accessor: (r) => r.items?.length ?? 0 },
+      { header: "Milk Consumed", accessor: (r) => `${(r.totalMilkConsumed ?? 0).toFixed(2)} KG` },
     ];
     return (
       <>
@@ -228,7 +228,7 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
         <Table columns={columns} data={d?.entries || []} keyField={(r) => r._id} loading={loading} />
         {d && (
           <div className="border-t border-slate-100 px-4 py-3 text-right text-sm">
-            કુલ વપરાયેલું દૂધ (Total Milk Consumed): <strong>{(d.totalMilkConsumed ?? 0).toFixed(2)} KG</strong>
+            Total Milk Consumed: <strong>{(d.totalMilkConsumed ?? 0).toFixed(2)} KG</strong>
           </div>
         )}
       </>
@@ -238,10 +238,10 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
   if (tab === "dispatch") {
     const d = data as { entries: any[] } | null;
     const columns: Column<any>[] = [
-      { header: "તારીખ (Date)", accessor: (r) => formatDate(r.date) },
-      { header: "ડિસ્પેચ નંબર (Dispatch No.)", accessor: (r) => r.dispatchNo },
-      { header: "ડેરી (Dairy)", accessor: (r) => r.dairy?.name },
-      { header: "આઇટમ (Items)", accessor: (r) => r.items?.length ?? 0 },
+      { header: "Date", accessor: (r) => formatDate(r.date) },
+      { header: "Dispatch No.", accessor: (r) => r.dispatchNo },
+      { header: "Dairy", accessor: (r) => r.dairy?.name },
+      { header: "Items", accessor: (r) => r.items?.length ?? 0 },
     ];
     return (
       <>
@@ -262,10 +262,10 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
   if (tab === "dairy-sales") {
     const d = data as { bills: any[]; totalSales: number } | null;
     const columns: Column<any>[] = [
-      { header: "તારીખ (Date)", accessor: (r) => formatDate(r.date) },
-      { header: "બિલ નંબર (Bill No.)", accessor: (r) => r.billNo },
-      { header: "ડેરી (Dairy)", accessor: (r) => r.dairy?.name },
-      { header: "કુલ રકમ (Grand Total)", accessor: (r) => formatCurrency(r.grandTotal) },
+      { header: "Date", accessor: (r) => formatDate(r.date) },
+      { header: "Bill No.", accessor: (r) => r.billNo },
+      { header: "Dairy", accessor: (r) => r.dairy?.name },
+      { header: "Grand Total", accessor: (r) => formatCurrency(r.grandTotal) },
     ];
     return (
       <>
@@ -281,7 +281,7 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
         <Table columns={columns} data={d?.bills || []} keyField={(r) => r._id} loading={loading} />
         {d && (
           <div className="border-t border-slate-100 px-4 py-3 text-right text-sm">
-            કુલ વેચાણ (Total Sales): <strong>{formatCurrency(d.totalSales)}</strong>
+            Total Sales: <strong>{formatCurrency(d.totalSales)}</strong>
           </div>
         )}
       </>
@@ -292,10 +292,10 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
     const d = data as { items: any[] } | null;
     const rows = d?.items || [];
     const columns: Column<any>[] = [
-      { header: "આઇટમ (Item)", accessor: (r) => r.itemName },
-      { header: "કોડ (Code)", accessor: (r) => r.itemCode },
-      { header: "વેચાયેલ જથ્થો (Qty Sold)", accessor: (r) => r.totalQty },
-      { header: "રકમ (Amount)", accessor: (r) => formatCurrency(r.totalAmount) },
+      { header: "Item", accessor: (r) => r.itemName },
+      { header: "Code", accessor: (r) => r.itemCode },
+      { header: "Qty Sold", accessor: (r) => r.totalQty },
+      { header: "Amount", accessor: (r) => formatCurrency(r.totalAmount) },
     ];
     return (
       <>
@@ -312,9 +312,9 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
     const d = data as { items: any[] } | null;
     const rows = d?.items || [];
     const columns: Column<any>[] = [
-      { header: "આઇટમ (Item)", accessor: (r) => r.item?.name },
-      { header: "કોડ (Code)", accessor: (r) => r.item?.code },
-      { header: "હાલનો સ્ટોક (Current Stock)", accessor: (r) => r.currentQty },
+      { header: "Item", accessor: (r) => r.item?.name },
+      { header: "Code", accessor: (r) => r.item?.code },
+      { header: "Current Stock", accessor: (r) => r.currentQty },
     ];
     return (
       <>
@@ -329,12 +329,12 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
 
   if (tab === "profit") {
     const d = data as { purchaseCost: number; salesRevenue: number; grossProfit: number } | null;
-    if (!d) return <div className="p-6 text-sm text-slate-400">કોઈ માહિતી નથી (No data)</div>;
+    if (!d) return <div className="p-6 text-sm text-slate-400">No data</div>;
     return (
       <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
-        <StatBlock label="ખરીદી ખર્ચ (Purchase Cost)" value={formatCurrency(d.purchaseCost)} />
-        <StatBlock label="વેચાણ આવક (Sales Revenue)" value={formatCurrency(d.salesRevenue)} />
-        <StatBlock label="કુલ નફો (Gross Profit)" value={formatCurrency(d.grossProfit)} highlight={d.grossProfit >= 0} />
+        <StatBlock label="Purchase Cost" value={formatCurrency(d.purchaseCost)} />
+        <StatBlock label="Sales Revenue" value={formatCurrency(d.salesRevenue)} />
+        <StatBlock label="Gross Profit" value={formatCurrency(d.grossProfit)} highlight={d.grossProfit >= 0} />
       </div>
     );
   }
@@ -360,11 +360,11 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
     const rows = [...byPeriod.values()].sort((a, b) => a.period.localeCompare(b.period));
 
     const columns: Column<(typeof rows)[number]>[] = [
-      { header: "સમયગાળો (Period)", accessor: (r) => r.period },
-      { header: "દૂધ ખરીદી - જથ્થો (Milk Purchased Qty)", accessor: (r) => r.qty },
-      { header: "ખરીદી રકમ (Purchase Amount)", accessor: (r) => formatCurrency(r.amount) },
-      { header: "વપરાયેલું દૂધ (Milk Consumed)", accessor: (r) => `${r.milkConsumed.toFixed(2)} KG` },
-      { header: "વેચાણ (Sales)", accessor: (r) => formatCurrency(r.sales) },
+      { header: "Period", accessor: (r) => r.period },
+      { header: "Milk Purchased Qty", accessor: (r) => r.qty },
+      { header: "Purchase Amount", accessor: (r) => formatCurrency(r.amount) },
+      { header: "Milk Consumed", accessor: (r) => `${r.milkConsumed.toFixed(2)} KG` },
+      { header: "Sales", accessor: (r) => formatCurrency(r.sales) },
     ];
 
     return (
@@ -386,9 +386,9 @@ function ExportCsvButton({ filename, rows }: { filename: string; rows: Record<st
         size="sm"
         icon={<FiDownload className="h-3.5 w-3.5" />}
         onClick={() => downloadCsv(filename, rows)}
-        title="વર્તમાન પાનું એક્સપોર્ટ થાય છે — વધુ માટે પાનું બદલો (Exports the current page — change pages to export more)"
+        title="Exports the current page — change pages to export more"
       >
-        CSV એક્સપોર્ટ કરો - આ પાનું (Export CSV (this page))
+        Export CSV (this page)
       </Button>
     </div>
   );

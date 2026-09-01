@@ -127,7 +127,7 @@ export default function InventoryPage() {
     });
     setAdjustErrors(fieldErrors);
     if (!isValid) {
-      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
+      toast.error("Please fix the highlighted fields");
       return;
     }
 
@@ -141,7 +141,7 @@ export default function InventoryPage() {
         quantity: Number(adjustForm.quantity),
         reason: adjustForm.reason,
       });
-      toast.success("સ્ટોક ગોઠવણ સેવ થઈ (Stock adjustment recorded)");
+      toast.success("Stock adjustment recorded");
       setAdjustDialogOpen(false);
       refetchAdjustments();
       refetchCentralStock();
@@ -154,19 +154,19 @@ export default function InventoryPage() {
   };
 
   const adjustmentColumns: Column<AdjustmentRow>[] = [
-    { header: "તારીખ (Date)", accessor: (r) => formatDate(r.date) },
+    { header: "Date", accessor: (r) => formatDate(r.date) },
     {
-      header: "આઇટમ (Item)",
+      header: "Item",
       primary: true,
-      accessor: (r) => (r.item ? r.item.name : "કાઢી નાખેલ આઇટમ (Deleted item)"),
+      accessor: (r) => (r.item ? r.item.name : "Deleted item"),
     },
     {
-      header: "પ્રકાર (Type)",
-      accessor: (r) => (r.stockType === "central_item" ? "મુખ્ય (Central)" : "ડેરી (Dairy)"),
+      header: "Type",
+      accessor: (r) => (r.stockType === "central_item" ? "Central" : "Dairy"),
     },
-    { header: "ડેરી (Dairy)", accessor: (r) => r.dairy?.name || "-" },
+    { header: "Dairy", accessor: (r) => r.dairy?.name || "-" },
     {
-      header: "જથ્થો (Quantity)",
+      header: "Quantity",
       accessor: (r) => (
         <span className={r.quantity > 0 ? "font-semibold text-emerald-600" : "font-semibold text-red-600"}>
           {r.quantity > 0 ? "+" : ""}
@@ -174,35 +174,35 @@ export default function InventoryPage() {
         </span>
       ),
     },
-    { header: "કારણ (Reason)", accessor: (r) => r.reason },
-    { header: "કોણે ગોઠવ્યું (Adjusted By)", accessor: (r) => r.adjustedBy?.name || "-" },
+    { header: "Reason", accessor: (r) => r.reason },
+    { header: "Adjusted By", accessor: (r) => r.adjustedBy?.name || "-" },
   ];
 
   const columns: Column<StockItem>[] = [
-    { header: "આઇટમ (Item)", accessor: (s) => <span className="font-medium text-slate-900">{s.item?.name}</span> },
-    { header: "કોડ (Code)", accessor: (s) => <span className="font-mono text-xs text-slate-500">{s.item?.code}</span> },
-    { header: "હાલનો સ્ટોક (Current Stock)", accessor: (s) => formatNumber(s.currentQty) },
-    { header: "ઓછામાં ઓછો સ્ટોક (Min. Alert)", accessor: (s) => s.item?.minStockAlert ?? 0 },
+    { header: "Item", accessor: (s) => <span className="font-medium text-slate-900">{s.item?.name}</span> },
+    { header: "Code", accessor: (s) => <span className="font-mono text-xs text-slate-500">{s.item?.code}</span> },
+    { header: "Current Stock", accessor: (s) => formatNumber(s.currentQty) },
+    { header: "Min. Alert", accessor: (s) => s.item?.minStockAlert ?? 0 },
     {
-      header: "સ્થિતિ (Status)",
+      header: "Status",
       accessor: (s) =>
         s.currentQty <= (s.item?.minStockAlert ?? 0) ? (
-          <Badge tone="danger">ઓછો સ્ટોક (Low Stock)</Badge>
+          <Badge tone="danger">Low Stock</Badge>
         ) : (
-          <Badge tone="success">પૂરતો (Healthy)</Badge>
+          <Badge tone="success">Healthy</Badge>
         ),
     },
   ];
 
   const reconciliationColumns: Column<ReconciliationRow>[] = [
-    { header: "આઇટમ (Item)", accessor: (r) => <span className="font-medium text-slate-900">{r.item.name}</span> },
-    { header: "કુલ ઉત્પાદન (Total Produced)", accessor: (r) => formatNumber(r.totalProduced) },
-    { header: "કુલ ડિસ્પેચ (Total Dispatched)", accessor: (r) => formatNumber(r.totalDispatched) },
-    { header: "મુખ્ય સ્ટોક (Central Stock)", accessor: (r) => formatNumber(r.centralStock) },
-    { header: "ડેરીઓનો સ્ટોક (Dairies' Stock)", accessor: (r) => formatNumber(r.dairyStock) },
-    { header: "કુલ વેચેલ (Total Sold)", accessor: (r) => formatNumber(r.totalSold) },
+    { header: "Item", accessor: (r) => <span className="font-medium text-slate-900">{r.item.name}</span> },
+    { header: "Total Produced", accessor: (r) => formatNumber(r.totalProduced) },
+    { header: "Total Dispatched", accessor: (r) => formatNumber(r.totalDispatched) },
+    { header: "Central Stock", accessor: (r) => formatNumber(r.centralStock) },
+    { header: "Dairies' Stock", accessor: (r) => formatNumber(r.dairyStock) },
+    { header: "Total Sold", accessor: (r) => formatNumber(r.totalSold) },
     {
-      header: "ગણતરીમાં લેવાયેલ (Accounted For)",
+      header: "Accounted For",
       accessor: (r) => (
         <span className="font-medium">
           {formatNumber(r.centralStock)} + {formatNumber(r.dairyStock)} + {formatNumber(r.totalSold)} ={" "}
@@ -211,18 +211,18 @@ export default function InventoryPage() {
       ),
     },
     {
-      header: "બેલેન્સ ચકાસણી (Balance Check)",
+      header: "Balance Check",
       accessor: (r) =>
         r.balanced ? (
           <Badge tone="success">
             <span className="flex items-center gap-1">
-              <FiCheckCircle className="h-3 w-3" /> મેળ ખાય છે (Matched)
+              <FiCheckCircle className="h-3 w-3" /> Matched
             </span>
           </Badge>
         ) : (
           <Badge tone="danger">
             <span className="flex items-center gap-1">
-              <FiAlertTriangle className="h-3 w-3" /> મેળ ખાતું નથી (Mismatch)
+              <FiAlertTriangle className="h-3 w-3" /> Mismatch
             </span>
           </Badge>
         ),
@@ -232,22 +232,22 @@ export default function InventoryPage() {
   return (
     <div>
       <PageHeader
-        title="મુખ્ય સ્ટોક નિયંત્રણ (Central Inventory Control)"
-        description="એડમિન-સાઇડ સ્ટોક — દૂધ, આઇટમ અને ડેરી ફાળવણી (Admin-side stock across milk, items, and dairy allocations)"
+        title="Central Inventory Control"
+        description="Admin-side stock across milk, items, and dairy allocations"
         actions={
           <Button icon={<FiPlus className="h-4 w-4" />} onClick={openAdjustDialog}>
-            સ્ટોક ગોઠવો (Adjust Stock)
+            Adjust Stock
           </Button>
         }
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="હાલનો દૂધનો સ્ટોક (Current Milk Stock)" value={`${formatNumber(milkStock)} KG`} icon={<FiDroplet className="h-5 w-5" />} tone="sky" />
-        <StatCard label="સ્ટોકમાં આઇટમ SKU (Item SKUs in Stock)" value={stockTotal} icon={<FiPackage className="h-5 w-5" />} tone="indigo" />
-        <StatCard label="ઓછો સ્ટોક ધરાવતી આઇટમ (Low Stock Items)" value={stockSummary?.lowStockCount ?? 0} tone="red" />
+        <StatCard label="Current Milk Stock" value={`${formatNumber(milkStock)} KG`} icon={<FiDroplet className="h-5 w-5" />} tone="sky" />
+        <StatCard label="Item SKUs in Stock" value={stockTotal} icon={<FiPackage className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="Low Stock Items" value={stockSummary?.lowStockCount ?? 0} tone="red" />
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700">મુખ્ય આઇટમ સ્ટોક (Central Item Stock)</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Central Item Stock</h2>
       <div className="mb-4">
         <SearchInput
           value={stockSearch}
@@ -255,20 +255,19 @@ export default function InventoryPage() {
             setStockSearch(v);
             setStockPage(1);
           }}
-          placeholder="આઇટમના નામ કે કોડથી શોધો... (Search by item name or code...)"
+          placeholder="Search by item name or code..."
         />
       </div>
       <Card className="mb-2 p-0">
-        <Table columns={columns} data={centralStock} keyField={(s) => s._id} loading={stockLoading} emptyMessage="હજુ કોઈ આઇટમ સ્ટોક નથી (No item stock yet)" />
+        <Table columns={columns} data={centralStock} keyField={(s) => s._id} loading={stockLoading} emptyMessage="No item stock yet" />
       </Card>
       <div className="mb-8">
         <Pagination page={stockPage} pages={stockPages} total={stockTotal} onPageChange={setStockPage} />
       </div>
 
-      <h2 className="mb-1 text-sm font-semibold text-slate-700">ડેરી પ્રમાણે સરખામણી (Dairy-wise Comparison)</h2>
+      <h2 className="mb-1 text-sm font-semibold text-slate-700">Dairy-wise Comparison</h2>
       <p className="mb-3 text-xs text-slate-400">
-        ડેરી પર ક્લિક કરીને તેનો સંપૂર્ણ ઇતિહાસ જુઓ — સ્ટોક, મળેલ ડિસ્પેચ અને વેચેલા બિલ. (Click a dairy to see its full history —
-        stock, dispatches received, and bills sold.)
+        Click a dairy to see its full history — stock, dispatches received, and bills sold.
       </p>
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {comparison.map((c) => (
@@ -282,26 +281,25 @@ export default function InventoryPage() {
                 <FiChevronRight className="h-4 w-4 text-slate-300" />
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-xs text-slate-500">કુલ સ્ટોક (Total Stock)</span>
+                <span className="text-xs text-slate-500">Total Stock</span>
                 <span className="font-semibold text-slate-800">{formatNumber(c.totalStock)}</span>
               </div>
               <div className="mt-1 flex items-center justify-between">
-                <span className="text-xs text-slate-500">આઇટમ પ્રકાર (Item Types)</span>
+                <span className="text-xs text-slate-500">Item Types</span>
                 <span className="font-semibold text-slate-800">{c.itemCount}</span>
               </div>
             </Card>
           </Link>
         ))}
         {!summaryLoading && !comparison.length && (
-          <p className="col-span-full text-sm text-slate-400">હજુ સ્ટોક ધરાવતી કોઈ ચાલુ ડેરી નથી (No active dairies with stock yet)</p>
+          <p className="col-span-full text-sm text-slate-400">No active dairies with stock yet</p>
         )}
       </div>
 
-      <h2 className="mb-1 text-sm font-semibold text-slate-700">સ્ટોક રિકન્સિલિએશન (Stock Reconciliation)</h2>
+      <h2 className="mb-1 text-sm font-semibold text-slate-700">Stock Reconciliation</h2>
       <p className="mb-3 text-xs text-slate-400">
-        દરેક ઉત્પાદિત યુનિટ ક્યાંક તો હોવું જ જોઈએ — મુખ્ય સ્ટોક, કોઈ ડેરીનો સ્ટોક, અથવા વેચાઈ ગયેલું. આ ટેબલ સાબિત કરે છે કે
-        કંઈ ગુમ થયું નથી. (Every unit ever produced must end up somewhere — Central stock, a dairy&apos;s stock, or
-        already sold. This table proves nothing has gone missing.)
+        Every unit ever produced must end up somewhere — Central stock, a dairy&apos;s stock, or
+        already sold. This table proves nothing has gone missing.
       </p>
       <Card className="mb-2 p-0">
         <Table
@@ -309,19 +307,19 @@ export default function InventoryPage() {
           data={reconciliation}
           keyField={(r) => r.item._id}
           loading={reconLoading}
-          emptyMessage="હજુ કોઈ ઉત્પાદન ઇતિહાસ નથી (No production history yet)"
+          emptyMessage="No production history yet"
         />
       </Card>
       <Pagination page={reconPage} pages={reconPages} total={reconTotal} onPageChange={setReconPage} />
 
-      <h2 className="mb-3 mt-8 text-sm font-semibold text-slate-700">સ્ટોક ગોઠવણ ઇતિહાસ (Stock Adjustment History)</h2>
+      <h2 className="mb-3 mt-8 text-sm font-semibold text-slate-700">Stock Adjustment History</h2>
       <Card className="mb-2 p-0">
         <Table
           columns={adjustmentColumns}
           data={adjustments}
           keyField={(r) => r._id}
           loading={adjLoading}
-          emptyMessage="હજુ કોઈ સ્ટોક ગોઠવણ નથી (No stock adjustments yet)"
+          emptyMessage="No stock adjustments yet"
         />
       </Card>
       <Pagination page={adjPage} pages={adjPages} total={adjTotal} onPageChange={setAdjPage} />
@@ -329,24 +327,24 @@ export default function InventoryPage() {
       <Dialog
         open={adjustDialogOpen}
         onClose={() => setAdjustDialogOpen(false)}
-        title="સ્ટોક ગોઠવો (Adjust Stock)"
+        title="Adjust Stock"
         footer={
           <>
             <Button variant="outline" onClick={() => setAdjustDialogOpen(false)}>
-              રદ કરો (Cancel)
+              Cancel
             </Button>
             <Button onClick={handleAdjustSubmit} loading={adjustSaving}>
-              સેવ કરો (Save)
+              Save
             </Button>
           </>
         }
       >
         <form onSubmit={handleAdjustSubmit} className="grid grid-cols-1 gap-4">
           <Select
-            label="પ્રકાર (Stock Type)"
+            label="Stock Type"
             options={[
-              { label: "મુખ્ય સ્ટોક (Central Stock)", value: "central_item" },
-              { label: "ડેરી સ્ટોક (Dairy Stock)", value: "dairy_item" },
+              { label: "Central Stock", value: "central_item" },
+              { label: "Dairy Stock", value: "dairy_item" },
             ]}
             value={adjustForm.stockType}
             onChange={(e) =>
@@ -355,7 +353,7 @@ export default function InventoryPage() {
           />
           {adjustForm.stockType === "dairy_item" && (
             <Select
-              label="ડેરી (Dairy)"
+              label="Dairy"
               required
               error={adjustErrors.dairy}
               options={activeDairies.map((d) => ({ label: d.name, value: d._id }))}
@@ -364,7 +362,7 @@ export default function InventoryPage() {
             />
           )}
           <Select
-            label="આઇટમ (Item)"
+            label="Item"
             required
             error={adjustErrors.item}
             options={activeItems.map((i) => ({ label: i.name, value: i._id }))}
@@ -372,19 +370,19 @@ export default function InventoryPage() {
             onChange={(e) => setAdjustForm({ ...adjustForm, item: e.target.value })}
           />
           <Input
-            label="જથ્થો (Quantity)"
+            label="Quantity"
             type="number"
             step="0.01"
             required
-            hint="ઉમેરવા માટે ધન અંક, ઘટાડવા માટે ઋણ અંક લખો (Positive to add stock, negative to remove — e.g. -5 for spoilage/wastage)"
+            hint="Positive to add stock, negative to remove — e.g. -5 for spoilage/wastage"
             error={adjustErrors.quantity}
             value={adjustForm.quantity}
             onChange={(e) => setAdjustForm({ ...adjustForm, quantity: e.target.value })}
           />
           <Textarea
-            label="કારણ (Reason)"
+            label="Reason"
             required
-            placeholder="દા.ત. બગડી ગયું, ગણતરીમાં ફરક (e.g. spoilage, physical count mismatch)"
+            placeholder="e.g. spoilage, physical count mismatch"
             error={adjustErrors.reason}
             value={adjustForm.reason}
             onChange={(e) => setAdjustForm({ ...adjustForm, reason: e.target.value })}

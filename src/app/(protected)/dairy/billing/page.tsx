@@ -82,16 +82,24 @@ export default function BillingPage() {
   const addRow = () => setRows((prev) => [...prev, { ...emptyRow }]);
   const removeRow = (index: number) => setRows((prev) => prev.filter((_, i) => i !== index));
 
+  // Mirrors bill.controller.js#createBill exactly: tax is derived per row from
+  // that item's own GST slab percent (never a flat rate), rounded per row and
+  // again after summing — a flat 5% here previously diverged from whatever
+  // the backend actually charges/records the moment an item's slab isn't 5%.
   const computedRows = rows.map((r) => {
     const qty = Number(r.quantity) || 0;
     const rate = Number(r.rate) || 0;
     const discount = Number(r.discount) || 0;
-    return { ...r, amount: qty * rate - discount };
+    const amount = qty * rate - discount;
+    const gstSlab = r.item ? itemMap[r.item]?.gstSlab : null;
+    const gstPercent = (gstSlab && typeof gstSlab === "object" ? gstSlab.percent : 0) || 0;
+    const tax = gstEnabled ? Math.round(((amount * gstPercent) / 100) * 100) / 100 : 0;
+    return { ...r, amount, tax };
   });
 
   const itemCount = computedRows.filter((r) => r.item).length;
   const subtotal = computedRows.reduce((sum, r) => sum + r.amount, 0);
-  const gstAmount = gstEnabled ? subtotal * 0.05 : 0;
+  const gstAmount = gstEnabled ? Math.round(computedRows.reduce((sum, r) => sum + r.tax, 0) * 100) / 100 : 0;
   const grandTotal = subtotal + gstAmount + (Number(roundOff) || 0);
 
   const resetForm = () => {
@@ -111,13 +119,13 @@ export default function BillingPage() {
     if (!filledRows.length) return { errors: nextErrors, isValid: false, blank: true };
     rows.forEach((r, i) => {
       if (!r.item && !r.quantity && !r.rate) return;
-      if (!r.item) nextErrors[i] = "આઇટમ પસંદ કરો (Select an item)";
-      else if (!r.quantity || Number(r.quantity) <= 0) nextErrors[i] = "જથ્થો 0 થી વધારે હોવો જોઈએ (Quantity must be greater than 0)";
-      else if (r.rate === "" || Number(r.rate) < 0) nextErrors[i] = "ભાવ નેગેટિવ ન હોઈ શકે (Rate cannot be negative)";
-      else if (Number(r.discount) < 0) nextErrors[i] = "ડિસ્કાઉન્ટ નેગેટિવ ન હોઈ શકે (Discount cannot be negative)";
-      else if (Number(r.discount) > Number(r.quantity) * Number(r.rate)) nextErrors[i] = "ડિસ્કાઉન્ટ જથ્થો × ભાવ કરતાં વધારે ન હોઈ શકે (Discount cannot exceed qty × rate)";
+      if (!r.item) nextErrors[i] = "Select an item";
+      else if (!r.quantity || Number(r.quantity) <= 0) nextErrors[i] = "Quantity must be greater than 0";
+      else if (r.rate === "" || Number(r.rate) < 0) nextErrors[i] = "Rate cannot be negative";
+      else if (Number(r.discount) < 0) nextErrors[i] = "Discount cannot be negative";
+      else if (Number(r.discount) > Number(r.quantity) * Number(r.rate)) nextErrors[i] = "Discount cannot exceed qty × rate";
       else if (requestedByItem[r.item] > (dairyStock[r.item] ?? 0)) {
-        nextErrors[i] = `ફક્ત ${dairyStock[r.item] ?? 0} સ્ટોકમાં છે (Only ${dairyStock[r.item] ?? 0} in stock)`;
+        nextErrors[i] = `Only ${dairyStock[r.item] ?? 0} in stock`;
       }
     });
     return { errors: nextErrors, isValid: Object.keys(nextErrors).length === 0, blank: false };
@@ -137,11 +145,11 @@ export default function BillingPage() {
       return;
     }
     if (blank) {
-      toast.warning("બિલમાં ઓછામાં ઓછી એક આઇટમ ઉમેરો (Add at least one item to the bill)");
+      toast.warning("Add at least one item to the bill");
       return;
     }
     if (!isValid) {
-      toast.error("લાલ બતાવેલ લાઇન સુધારો (Please fix the highlighted rows)");
+      toast.error("Please fix the highlighted rows");
       return;
     }
     const validRows = rows.filter((r) => r.item && Number(r.quantity) > 0);
@@ -163,7 +171,7 @@ export default function BillingPage() {
         paymentMode,
         paidAmount: grandTotal,
       });
-      toast.success("બિલ સફળતાપૂર્વક સેવ થયું (Bill saved successfully)");
+      toast.success("Bill saved successfully");
       setSavedBill(res.data.data);
       resetForm();
       refreshDairyStock();
@@ -201,19 +209,19 @@ export default function BillingPage() {
 
   return (
     <div>
-      <PageHeader title="કાઉન્ટર બિલિંગ (Counter Billing)" description="ગ્રાહક માટે વેચાણ બિલ બનાવો (Create a sales bill for a walk-in customer)" />
+      <PageHeader title="Counter Billing" description="Create a sales bill for a walk-in customer" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
               <FiUser className="h-4 w-4 text-indigo-500" />
-              ગ્રાહકની વિગત (Customer Details)
+              Customer Details
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="ગ્રાહકનું નામ (Customer Name)" placeholder="વૉક-ઇન ગ્રાહક (Walk-in Customer)" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+              <Input label="Customer Name" placeholder="Walk-in Customer" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
               <Input
-                label="મોબાઇલ નંબર - વૈકલ્પિક (Mobile Number, optional)"
+                label="Mobile Number (Optional)"
                 icon={<FiPhone className="h-4 w-4" />}
                 inputMode="numeric"
                 maxLength={10}
@@ -228,23 +236,23 @@ export default function BillingPage() {
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                 <FiShoppingCart className="h-4 w-4 text-indigo-500" />
-                બિલ આઇટમ (Bill Items)
+                Bill Items
               </div>
               {itemCount > 0 && (
                 <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600">
-                  {itemCount} આઇટમ (item{itemCount > 1 ? "s" : ""})
+                  {itemCount} item{itemCount > 1 ? "s" : ""}
                 </span>
               )}
             </div>
 
             <div className="overflow-hidden rounded-lg border border-slate-200">
               <div className="hidden bg-indigo-600 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-white sm:flex sm:items-center sm:gap-2">
-                <p className="flex-[2]">આઇટમ (Item)</p>
-                <p className="w-20 text-center">સ્ટોક (Stock)</p>
-                <p className="w-20 text-right">જથ્થો (Qty)</p>
-                <p className="w-24 text-right">ભાવ (Rate)</p>
-                <p className="w-24 text-right">ડિસ્કાઉન્ટ</p>
-                <p className="w-28 shrink-0 text-right">રકમ (Amount)</p>
+                <p className="flex-[2]">Item</p>
+                <p className="w-20 text-center">Stock</p>
+                <p className="w-20 text-right">Qty</p>
+                <p className="w-24 text-right">Rate</p>
+                <p className="w-24 text-right">Discount</p>
+                <p className="w-28 shrink-0 text-right">Amount</p>
                 <span className="w-9 shrink-0" aria-hidden="true" />
               </div>
 
@@ -267,7 +275,7 @@ export default function BillingPage() {
                         .map((it) => ({ label: it.name, value: it._id }))}
                       value={row.item}
                       onChange={(e) => onSelectItem(i, e.target.value)}
-                      placeholder="આઇટમ પસંદ કરો (Select item)"
+                      placeholder="Select item"
                       error={rowErrors[i]}
                     />
                     <div
@@ -285,7 +293,7 @@ export default function BillingPage() {
                         <>
                           <span className="text-base font-bold">{available}</span>
                           <span className="text-[9px] font-medium uppercase tracking-wide">
-                            {available <= 0 ? "સ્ટોક નથી" : overLimit ? "પૂરતું નથી" : "સ્ટોકમાં છે"}
+                            {available <= 0 ? "No Stock" : overLimit ? "Not Enough" : "In Stock"}
                           </span>
                         </>
                       )}
@@ -295,7 +303,7 @@ export default function BillingPage() {
                       type="number"
                       step="0.01"
                       min="0.01"
-                      placeholder="જથ્થો"
+                      placeholder="Qty"
                       value={row.quantity}
                       onChange={(e) => updateRow(i, { quantity: e.target.value })}
                     />
@@ -304,7 +312,7 @@ export default function BillingPage() {
                       type="number"
                       step="0.01"
                       min="0"
-                      placeholder="ભાવ"
+                      placeholder="Rate"
                       value={row.rate}
                       onChange={(e) => updateRow(i, { rate: e.target.value })}
                     />
@@ -313,7 +321,7 @@ export default function BillingPage() {
                       type="number"
                       step="0.01"
                       min="0"
-                      placeholder="ડિસ્કાઉન્ટ"
+                      placeholder="Discount"
                       value={row.discount}
                       onChange={(e) => updateRow(i, { discount: e.target.value })}
                     />
@@ -324,7 +332,7 @@ export default function BillingPage() {
                       size="icon"
                       onClick={() => removeRow(i)}
                       disabled={rows.length === 1}
-                      title="આઇટમ કાઢી નાખો (Remove item)"
+                      title="Remove item"
                     >
                       <FiTrash2 className="h-4 w-4 text-red-500" />
                     </Button>
@@ -335,16 +343,16 @@ export default function BillingPage() {
             </div>
 
             <Button type="button" variant="outline" size="sm" className="mt-3" icon={<FiPlus className="h-3.5 w-3.5" />} onClick={addRow}>
-              આઇટમ ઉમેરો (Add Item)
+              Add Item
             </Button>
           </Card>
         </div>
 
         <Card className="h-fit lg:sticky lg:top-4">
-          <h3 className="mb-3 text-sm font-semibold text-slate-700">બિલનો સરવાળો (Bill Summary)</h3>
+          <h3 className="mb-3 text-sm font-semibold text-slate-700">Bill Summary</h3>
           <div className="space-y-2.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-500">સબટોટલ (Subtotal)</span>
+              <span className="text-slate-500">Subtotal</span>
               <span className="font-medium text-slate-800">{formatCurrency(subtotal)}</span>
             </div>
             <label className="flex items-center justify-between">
@@ -355,46 +363,46 @@ export default function BillingPage() {
                   checked={gstEnabled}
                   onChange={(e) => setGstEnabled(e.target.checked)}
                 />
-                GST લગાવો (Apply GST 5%)
+                Apply GST
               </span>
               <span className="font-medium text-slate-800">{formatCurrency(gstAmount)}</span>
             </label>
             <div className="flex items-center justify-between">
-              <span className="text-slate-500">રાઉન્ડ ઓફ (Round Off)</span>
+              <span className="text-slate-500">Round Off</span>
               <Input type="number" step="0.01" value={roundOff} onChange={(e) => setRoundOff(e.target.value)} wrapperClassName="w-24" />
             </div>
 
             <div className="flex items-center justify-between rounded-lg bg-indigo-600 px-3.5 py-3 text-white">
-              <span className="text-sm font-medium">કુલ રકમ (Grand Total)</span>
+              <span className="text-sm font-medium">Grand Total</span>
               <span className="text-lg font-bold">{formatCurrency(grandTotal)}</span>
             </div>
 
             <Select
-              label="ચુકવણીની રીત (Payment Mode)"
+              label="Payment Mode"
               options={[
-                { label: "રોકડ (Cash)", value: "Cash" },
+                { label: "Cash", value: "Cash" },
                 { label: "UPI", value: "UPI" },
-                { label: "કાર્ડ (Card)", value: "Card" },
-                { label: "ઉધાર (Credit)", value: "Credit" },
+                { label: "Card", value: "Card" },
+                { label: "Credit", value: "Credit" },
               ]}
               value={paymentMode}
               onChange={(e) => setPaymentMode(e.target.value)}
             />
           </div>
           <Button className="mt-4 w-full" onClick={handleSave} loading={saving}>
-            સેવ કરો અને પ્રિન્ટ કરો (Save & Print)
+            Save & Print
           </Button>
         </Card>
       </div>
 
-      <Dialog open={Boolean(savedBill)} onClose={() => setSavedBill(null)} title="બિલ સેવ થયું (Bill Saved)" size="sm">
+      <Dialog open={Boolean(savedBill)} onClose={() => setSavedBill(null)} title="Bill Saved" size="sm">
         {savedBill && (
           <div className="space-y-4">
             <div className="flex items-center gap-3 rounded-lg bg-emerald-50 px-4 py-3">
               <FiCheckCircle className="h-8 w-8 shrink-0 text-emerald-500" />
               <div>
                 <p className="text-sm text-emerald-700">
-                  બિલ નંબર <strong>{savedBill.billNo}</strong> સફળતાપૂર્વક સેવ થયું. (Saved successfully.)
+                  Saved successfully.
                 </p>
                 <p className="text-xs text-emerald-600">{formatDate(savedBill.date)}</p>
               </div>
@@ -403,26 +411,26 @@ export default function BillingPage() {
             <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm">
               {savedBill.customerName && (
                 <div className="mb-1 flex justify-between text-slate-500">
-                  <span>ગ્રાહક (Customer)</span>
+                  <span>Customer</span>
                   <span className="font-medium text-slate-800">{savedBill.customerName}</span>
                 </div>
               )}
               <div className="mb-1 flex justify-between text-slate-500">
-                <span>ચુકવણીની રીત (Payment Mode)</span>
+                <span>Payment Mode</span>
                 <span className="font-medium text-slate-800">{savedBill.paymentMode}</span>
               </div>
               <div className="mt-2 flex justify-between border-t border-slate-200 pt-2 text-base font-semibold text-slate-900">
-                <span>કુલ રકમ (Grand Total)</span>
+                <span>Grand Total</span>
                 <span>{formatCurrency(savedBill.grandTotal)}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" icon={<FiPrinter className="h-4 w-4" />} onClick={handlePrint} loading={printing}>
-                પ્રિન્ટ કરો (Print)
+                Print
               </Button>
               <Button icon={<FiDownload className="h-4 w-4" />} onClick={handleDownloadPdf} loading={downloading}>
-                PDF ડાઉનલોડ કરો
+                Download PDF
               </Button>
             </div>
           </div>

@@ -20,7 +20,7 @@ export function RowActions({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function ViewAction({ onClick, title = "જુઓ (View)", disabled }: ActionProps) {
+export function ViewAction({ onClick, title = "View", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiEye className="h-4 w-4" />
@@ -28,7 +28,7 @@ export function ViewAction({ onClick, title = "જુઓ (View)", disabled }: Ac
   );
 }
 
-export function EditAction({ onClick, title = "ફેરફાર કરો (Edit)", disabled }: ActionProps) {
+export function EditAction({ onClick, title = "Edit", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiEdit2 className="h-4 w-4" />
@@ -36,7 +36,7 @@ export function EditAction({ onClick, title = "ફેરફાર કરો (Edi
   );
 }
 
-export function DeleteAction({ onClick, title = "કાઢી નાખો (Delete)", disabled }: ActionProps) {
+export function DeleteAction({ onClick, title = "Delete", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiTrash2 className="h-4 w-4 text-red-500" />
@@ -44,7 +44,7 @@ export function DeleteAction({ onClick, title = "કાઢી નાખો (Dele
   );
 }
 
-export function CancelAction({ onClick, title = "રદ કરો (Cancel)", disabled }: ActionProps) {
+export function CancelAction({ onClick, title = "Cancel", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiXCircle className="h-4 w-4 text-red-500" />
@@ -55,7 +55,7 @@ export function CancelAction({ onClick, title = "રદ કરો (Cancel)", dis
 export function ToggleStatusAction({
   active,
   onClick,
-  title = "સ્થિતિ બદલો (Toggle status)",
+  title = "Toggle status",
   disabled,
 }: ActionProps & { active: boolean }) {
   return (
@@ -65,7 +65,7 @@ export function ToggleStatusAction({
   );
 }
 
-export function ResetPasswordAction({ onClick, title = "પાસવર્ડ રીસેટ કરો (Reset password)", disabled }: ActionProps) {
+export function ResetPasswordAction({ onClick, title = "Reset password", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiKey className="h-4 w-4" />
@@ -73,7 +73,7 @@ export function ResetPasswordAction({ onClick, title = "પાસવર્ડ �
   );
 }
 
-export function LedgerAction({ onClick, title = "ખાતાવહી (Ledger)", disabled }: ActionProps) {
+export function LedgerAction({ onClick, title = "Ledger", disabled }: ActionProps) {
   return (
     <Button variant="ghost" size="icon" title={title} onClick={onClick} disabled={disabled}>
       <FiBookOpen className="h-4 w-4" />

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FiPlus } from "react-icons/fi";
-import { RowActions, EditAction, ResetPasswordAction, ToggleStatusAction } from "@/components/ui/RowActions";
+import { RowActions, EditAction, ResetPasswordAction, ToggleStatusAction, DeleteAction } from "@/components/ui/RowActions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Table, type Column } from "@/components/ui/Table";
@@ -10,6 +10,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useToast } from "@/components/ui/Toast";
@@ -41,6 +42,10 @@ export default function DairiesPage() {
   const togglingRef = useRef<string | null>(null);
   const resettingRef = useRef(false);
 
+  const [deleteTarget, setDeleteTarget] = useState<Dairy | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const deletingRef = useRef(false);
+
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
@@ -63,7 +68,7 @@ export default function DairiesPage() {
       password: () =>
         !editing
           ? !form.password
-            ? "પાસવર્ડ જરૂરી છે (Password is required)"
+            ? "Password is required"
             : validateMinLength(form.password, 4, "Password")
           : undefined,
     });
@@ -73,7 +78,7 @@ export default function DairiesPage() {
     const { errors: fieldErrors, isValid } = validate();
     setErrors(fieldErrors);
     if (!isValid) {
-      toast.error("લાલ બતાવેલ ખાનાં સુધારો (Please fix the highlighted fields)");
+      toast.error("Please fix the highlighted fields");
       return;
     }
     setSaving(true);
@@ -85,10 +90,10 @@ export default function DairiesPage() {
           address: form.address,
           loginId: form.loginId,
         });
-        toast.success("ડેરી સફળતાપૂર્વક અપડેટ થઈ (Dairy updated successfully)");
+        toast.success("Dairy updated successfully");
       } else {
         await dairyService.create(form);
-        toast.success("ડેરી સફળતાપૂર્વક બની (Dairy created successfully)");
+        toast.success("Dairy created successfully");
       }
       setDialogOpen(false);
       refetch();
@@ -121,7 +126,7 @@ export default function DairiesPage() {
     setResetting(true);
     try {
       await dairyService.resetPassword(resetTarget._id, resetPassword);
-      toast.success("ડેરીનો પાસવર્ડ સફળતાપૂર્વક રીસેટ થયો (Dairy password reset successfully)");
+      toast.success("Dairy password reset successfully");
       setResetTarget(null);
       setResetPassword("");
     } catch (err) {
@@ -132,27 +137,45 @@ export default function DairiesPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget || deletingRef.current) return;
+    deletingRef.current = true;
+    setDeleting(true);
+    try {
+      await dairyService.remove(deleteTarget._id);
+      toast.success("Dairy deleted");
+      setDeleteTarget(null);
+      refetch();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      deletingRef.current = false;
+      setDeleting(false);
+    }
+  };
+
   const columns: Column<Dairy>[] = [
-    { header: "કોડ (Code)", accessor: (d) => <span className="font-mono text-xs text-slate-500">{d.code}</span> },
-    { header: "ડેરીનું નામ (Dairy Name)", primary: true, accessor: (d) => <span className="font-medium text-slate-900">{d.name}</span> },
-    { header: "મોબાઇલ નંબર (Mobile)", accessor: (d) => d.mobile },
-    { header: "લોગિન ID (Login ID)", accessor: (d) => d.loginId },
-    { header: "બનાવ્યા તારીખ (Created)", accessor: (d) => formatDate(d.createdAt) },
+    { header: "Code", accessor: (d) => <span className="font-mono text-xs text-slate-500">{d.code}</span> },
+    { header: "Dairy Name", primary: true, accessor: (d) => <span className="font-medium text-slate-900">{d.name}</span> },
+    { header: "Mobile", accessor: (d) => d.mobile },
+    { header: "Login ID", accessor: (d) => d.loginId },
+    { header: "Created", accessor: (d) => formatDate(d.createdAt) },
     {
-      header: "સ્થિતિ (Status)",
+      header: "Status",
       accessor: (d) => (
         <Badge tone={d.status === "active" ? "success" : "neutral"}>
-          {d.status === "active" ? "ચાલુ (Active)" : "બંધ (Inactive)"}
+          {d.status === "active" ? "Active" : "Inactive"}
         </Badge>
       ),
     },
     {
-      header: "ક્રિયા (Actions)",
+      header: "Actions",
       accessor: (d) => (
         <RowActions>
           <EditAction onClick={() => openEdit(d)} />
           <ResetPasswordAction onClick={() => setResetTarget(d)} />
           <ToggleStatusAction active={d.status === "active"} disabled={togglingId === d._id} onClick={() => handleToggleStatus(d)} />
+          <DeleteAction onClick={() => setDeleteTarget(d)} />
         </RowActions>
       ),
     },
@@ -161,11 +184,11 @@ export default function DairiesPage() {
   return (
     <div>
       <PageHeader
-        title="ડેરી (શાખા) (Dairies / Branch)"
-        description="અમર્યાદિત ડેરી શાખાઓ અને તેમની લોગિન ઍક્સેસ મેનેજ કરો (Manage unlimited dairy branches and their login access)"
+        title="Dairies / Branch"
+        description="Manage unlimited dairy branches and their login access"
         actions={
           <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
-            ડેરી ઉમેરો (Add Dairy)
+            Add Dairy
           </Button>
         }
       />
@@ -174,54 +197,54 @@ export default function DairiesPage() {
         <SearchInput
           value={search}
           onChange={(v) => { setSearch(v); setPage(1); }}
-          placeholder="નામ, કોડ, મોબાઇલ, સરનામું, લોગિનથી શોધો... (Search by name, code, mobile, address, login...)"
+          placeholder="Search by name, code, mobile, address, login..."
         />
       </div>
 
-      <Table columns={columns} data={items} keyField={(d) => d._id} loading={loading} emptyMessage="હજુ કોઈ ડેરી ઉમેરી નથી (No dairies added yet)" />
+      <Table columns={columns} data={items} keyField={(d) => d._id} loading={loading} emptyMessage="No dairies added yet" />
       <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
 
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={editing ? "ડેરીમાં ફેરફાર કરો (Edit Dairy)" : "ડેરી ઉમેરો (Add Dairy)"}
+        title={editing ? "Edit Dairy" : "Add Dairy"}
         footer={
           <>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              રદ કરો (Cancel)
+              Cancel
             </Button>
             <Button onClick={handleSubmit} loading={saving}>
-              {editing ? "ફેરફાર સેવ કરો (Save Changes)" : "ડેરી બનાવો (Create Dairy)"}
+              {editing ? "Save Changes" : "Create Dairy"}
             </Button>
           </>
         }
       >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="ડેરીનું નામ (Dairy Name)"
+            label="Dairy Name"
             required
             error={errors.name}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <Input
-            label="મોબાઇલ નંબર (Mobile Number)"
+            label="Mobile Number"
             required
             inputMode="numeric"
             maxLength={10}
-            hint="10 અંકનો મોબાઇલ નંબર (10-digit mobile number)"
+            hint="10-digit mobile number"
             error={errors.mobile}
             value={form.mobile}
             onChange={(e) => setForm({ ...form, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
           />
           <Input
-            label="સરનામું (Address)"
+            label="Address"
             wrapperClassName="sm:col-span-2"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
           />
           <Input
-            label="લોગિન ID (Login ID)"
+            label="Login ID"
             required
             error={errors.loginId}
             value={form.loginId}
@@ -229,10 +252,10 @@ export default function DairiesPage() {
           />
           {!editing && (
             <PasswordInput
-              label="પાસવર્ડ (Password)"
+              label="Password"
               required
               error={errors.password}
-              hint="ઓછામાં ઓછા 4 અક્ષર (At least 4 characters)"
+              hint="At least 4 characters"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
@@ -243,28 +266,38 @@ export default function DairiesPage() {
       <Dialog
         open={Boolean(resetTarget)}
         onClose={() => setResetTarget(null)}
-        title={`પાસવર્ડ રીસેટ કરો (Reset Password) — ${resetTarget?.name}`}
+        title={`Reset Password — ${resetTarget?.name}`}
         size="md"
         footer={
           <>
             <Button variant="outline" onClick={() => setResetTarget(null)}>
-              રદ કરો (Cancel)
+              Cancel
             </Button>
             <Button onClick={handleResetPassword} loading={resetting}>
-              પાસવર્ડ રીસેટ કરો (Reset Password)
+              Reset Password
             </Button>
           </>
         }
       >
         <form onSubmit={handleResetPassword} className="min-h-[150px] flex flex-col justify-center">
           <PasswordInput
-            label="નવો પાસવર્ડ (New Password)"
+            label="New Password"
             required
             value={resetPassword}
             onChange={(e) => setResetPassword(e.target.value)}
           />
         </form>
       </Dialog>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Dairy"
+        description={`Are you sure you want to delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+      />
     </div>
   );
 }

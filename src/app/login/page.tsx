@@ -59,8 +59,7 @@ export default function LoginPage() {
           </div>
           <h1 className="mt-2 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-700 tracking-tight">Murli Milk Dairy</h1>
           <p className="mt-2 text-sm text-slate-500 max-w-xs mx-auto leading-relaxed">
-            તમારા એડમિન અથવા ડેરી પેનલમાં લોગિન કરો<br/>
-            <span className="text-xs opacity-80">(Sign in to your admin or dairy panel)</span>
+            Sign in to your admin or dairy panel
           </p>
         </div>
 
@@ -74,7 +73,7 @@ export default function LoginPage() {
 
             <div className="group">
               <Input
-                label="લોગિન ID (Login ID)"
+                label="Login ID"
                 placeholder="e.g. admin"
                 icon={<FiUser className="h-5 w-5 text-indigo-500/70 group-focus-within:text-indigo-600 transition-colors" />}
                 value={loginId}
@@ -87,7 +86,7 @@ export default function LoginPage() {
             
             <div className="group">
               <PasswordInput
-                label="પાસવર્ડ (Password)"
+                label="Password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -101,7 +100,7 @@ export default function LoginPage() {
               className="mt-4 w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all duration-200 h-12 text-base font-medium rounded-xl" 
               loading={loading}
             >
-              લોગિન કરો (Sign In)
+              Sign In
             </Button>
           </form>
         </div>

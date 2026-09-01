@@ -9,23 +9,23 @@ export default function CitiesPage() {
     <SimpleMasterManager
       endpoint={API_ENDPOINTS.MASTER_CITIES}
       module="city"
-      title="શહેર (Cities)"
-      singularLabel="શહેર (City)"
-      description="વેન્ડરના સરનામાં માટે વપરાતા શહેર અને ગામ સંભાળો (Manage cities and villages used for vendor addresses)"
-      addLabel="શહેર ઉમેરો (Add City)"
-      searchPlaceholder="શહેર શોધો... (Search cities...)"
+      title="Cities"
+      singularLabel="City"
+      description="Manage cities and villages used for vendor addresses"
+      addLabel="Add City"
+      searchPlaceholder="Search cities..."
       fields={[
         {
           name: "name",
-          label: "શહેર / ગામનું નામ (City / Village Name)",
+          label: "City / Village Name",
           required: true,
           validate: (v) => validateMinLength(v.trim(), 2, "City name"),
         },
-        { name: "state", label: "રાજ્ય (State)" },
+        { name: "state", label: "State" },
       ]}
       displayColumns={[
-        { header: "નામ (Name)", render: (row) => <span className="font-medium text-slate-900">{String(row.name)}</span> },
-        { header: "રાજ્ય (State)", render: (row) => String(row.state || "-") },
+        { header: "Name", render: (row) => <span className="font-medium text-slate-900">{String(row.name)}</span> },
+        { header: "State", render: (row) => String(row.state || "-") },
       ]}
     />
   );
