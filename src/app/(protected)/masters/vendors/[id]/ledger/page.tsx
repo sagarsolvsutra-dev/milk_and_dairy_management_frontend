@@ -46,6 +46,7 @@ export default function VendorLedgerPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyPayment);
   const [amountError, setAmountError] = useState("");
+  const [dateError, setDateError] = useState("");
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   useEffect(() => {
@@ -80,8 +81,14 @@ export default function VendorLedgerPage() {
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (savingRef.current) return;
+    const dateErr = form.date ? "" : "Date is required";
+    setDateError(dateErr);
     const err = validatePositiveNumber(form.amount, "Amount");
     setAmountError(err || "");
+    if (dateErr) {
+      toast.error(dateErr);
+      return;
+    }
     if (err) {
       toast.error(err);
       return;
@@ -150,7 +157,7 @@ export default function VendorLedgerPage() {
         description={vendor?.mobile}
         actions={
           canAddPayment ? (
-            <Button icon={<FiPlus className="h-4 w-4" />} onClick={() => { setForm(emptyPayment); setAmountError(""); setDialogOpen(true); }}>
+            <Button icon={<FiPlus className="h-4 w-4" />} onClick={() => { setForm(emptyPayment); setAmountError(""); setDateError(""); setDialogOpen(true); }}>
               Add Payment
             </Button>
           ) : undefined
@@ -201,7 +208,7 @@ export default function VendorLedgerPage() {
         }
       >
         <form onSubmit={handleAddPayment} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <DatePicker label="Date" required value={form.date} onChange={(v) => setForm({ ...form, date: v })} />
+          <DatePicker label="Date" required error={dateError} value={form.date} onChange={(v) => setForm({ ...form, date: v })} />
           <Input
             label="Amount"
             type="number"

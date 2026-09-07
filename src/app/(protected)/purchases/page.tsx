@@ -112,6 +112,7 @@ export default function PurchasesPage() {
 
   const validate = () =>
     runValidation({
+      date: () => validateRequired(form.date, "Purchase Date"),
       vendor: () => validateRequired(form.vendor, "Vendor"),
       quantity: () => validatePositiveNumber(form.quantity, "Quantity"),
       rate: () => validatePositiveNumber(form.rate, "Rate"),
@@ -180,6 +181,7 @@ export default function PurchasesPage() {
 
   const editValidate = () =>
     runValidation({
+      date: () => validateRequired(editForm.date, "Purchase Date"),
       vendor: () => validateRequired(editForm.vendor, "Vendor"),
       quantity: () => validatePositiveNumber(editForm.quantity, "Quantity"),
       rate: () => validatePositiveNumber(editForm.rate, "Rate"),
@@ -252,7 +254,11 @@ export default function PurchasesPage() {
       await purchaseService.remove(deleteTarget._id);
       toast.success("Purchase entry deleted");
       setDeleteTarget(null);
-      refetch();
+      // Deleting the only item left on a page beyond the first would
+      // otherwise leave that page stale and empty — step back first so the
+      // refetch triggered by the page change loads the previous page instead.
+      if (items.length === 1 && page > 1) setPage(page - 1);
+      else refetch();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -349,7 +355,7 @@ export default function PurchasesPage() {
         }
       >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <DatePicker label="Purchase Date" required value={form.date} onChange={(v) => setForm({ ...form, date: v })} />
+          <DatePicker label="Purchase Date" required error={errors.date} value={form.date} onChange={(v) => setForm({ ...form, date: v })} />
           <Select
             label="Vendor"
             required
@@ -485,6 +491,7 @@ export default function PurchasesPage() {
           <DatePicker
             label="Purchase Date"
             required
+            error={editErrors.date}
             value={editForm.date}
             onChange={(v) => setEditForm({ ...editForm, date: v })}
           />

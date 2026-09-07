@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 import { API_ENDPOINTS } from "@/services/endpoints";
+import { isReadOnly, READ_ONLY_MESSAGE } from "./accessMode";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
@@ -10,9 +11,29 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+const WRITE_METHODS = ["post", "put", "patch", "delete"];
+
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  // Refuse mutating calls while the subscription lock is on. The backend
+  // refuses them too (403 SUBSCRIPTION_INACTIVE) — doing it here as well means
+  // the user gets the friendly reason instead of a raw server rejection, and
+  // it covers every existing page without touching a single one of them.
+  const method = (config.method || "get").toLowerCase();
+  const url = config.url || "";
+  // The subscription/config endpoints must stay usable, or the lock could
+  // never be lifted from inside the app. Change-password is allowed too,
+  // matching the backend's own ALWAYS_ALLOWED list — it's the one
+  // self-service account-recovery path this app has, and a locked-out user
+  // must still be able to use it.
+  const isSubscriptionCall = url.includes("/subscription");
+  const isChangePasswordCall = url === API_ENDPOINTS.AUTH_CHANGE_PASSWORD;
+  if (WRITE_METHODS.includes(method) && !isSubscriptionCall && !isChangePasswordCall && isReadOnly()) {
+    return Promise.reject(new Error(READ_ONLY_MESSAGE));
+  }
+
   return config;
 });
 

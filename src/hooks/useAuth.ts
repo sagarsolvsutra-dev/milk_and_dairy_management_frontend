@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/lib/api";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/authStore";
+import { resetAccessState } from "@/lib/accessMode";
 import type { AuthUser } from "@/types";
 import { useToast } from "@/components/ui/Toast";
 
@@ -26,6 +27,7 @@ export function useAuth() {
       // ignore network errors on logout
     } finally {
       clearAuth();
+      resetAccessState();
       toast.info("You have been logged out");
       router.replace("/login");
     }

@@ -60,14 +60,32 @@ export function DatePicker({
   placeholder = "Select date",
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const [viewDate, setViewDate] = useState(() => parseValue(value) || new Date());
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const id = useId();
 
+  // Roughly the popover's own rendered height (header + weekday row + 6 day
+  // rows + footer + padding) — used only to decide which side has room.
+  const POPOVER_HEIGHT_ESTIMATE = 340;
+
   // Re-center the calendar on whatever's currently selected every time it
-  // opens, rather than wherever it was last left scrolled to.
+  // opens, rather than wherever it was last left scrolled to. Also decide
+  // whether to flip the popover upward: every add/edit dialog in this app
+  // scrolls its own content pane, so a field positioned low in a long form
+  // can otherwise open a calendar that renders partially below the visible
+  // area with no cue that anything happened.
   useEffect(() => {
-    if (open) setViewDate(parseValue(value) || new Date());
+    if (!open) return;
+    setViewDate(parseValue(value) || new Date());
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) {
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      setOpenUpward(spaceBelow < POPOVER_HEIGHT_ESTIMATE && spaceAbove > spaceBelow);
+      triggerRef.current?.scrollIntoView({ block: "nearest" });
+    }
   }, [open, value]);
 
   useEffect(() => {
@@ -110,6 +128,7 @@ export function DatePicker({
         <button
           type="button"
           id={id}
+          ref={triggerRef}
           onClick={() => setOpen((o) => !o)}
           className={cn(
             "flex h-9.5 w-full cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-left text-sm transition-colors",
@@ -123,7 +142,12 @@ export function DatePicker({
         </button>
 
         {open && (
-          <div className="absolute z-20 mt-1.5 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+          <div
+            className={cn(
+              "absolute z-20 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-lg",
+              openUpward ? "bottom-full mb-1.5" : "top-full mt-1.5"
+            )}
+          >
             <div className="mb-2 flex items-center justify-between">
               <button
                 type="button"

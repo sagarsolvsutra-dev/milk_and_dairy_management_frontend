@@ -8,6 +8,7 @@ import { FiX, FiChevronDown } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 import { NAV_GROUPS } from "./navConfig";
+import PlanStatusIndicator from "@/components/PlanStatusIndicator";
 import type { Role } from "@/types";
 
 const STORAGE_KEY = "milk-dairy-sidebar-groups";
@@ -134,6 +135,10 @@ export function Sidebar({
             );
           })}
         </nav>
+
+        <div className="shrink-0 border-t border-slate-100 p-3">
+          <PlanStatusIndicator variant="sidebar" />
+        </div>
       </aside>
     </>
   );

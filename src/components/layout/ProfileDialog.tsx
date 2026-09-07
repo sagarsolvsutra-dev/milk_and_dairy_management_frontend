@@ -124,7 +124,7 @@ export function ProfileDialog({ open, onClose }: { open: boolean; onClose: () =>
             value={form.confirmPassword}
             onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
           />
-          <Button type="submit" className="w-full" loading={saving}>
+          <Button type="submit" className="w-full" loading={saving} allowWhenReadOnly>
             Change Password
           </Button>
         </form>

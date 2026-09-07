@@ -1,8 +1,10 @@
 "use client";
 
 import { ButtonHTMLAttributes, forwardRef } from "react";
-import { FiLoader } from "react-icons/fi";
+import { FiLoader, FiLock } from "react-icons/fi";
 import { cn } from "@/lib/utils";
+import { useAccessMode } from "@/hooks/useAccessMode";
+import { READ_ONLY_MESSAGE } from "@/lib/accessMode";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "success";
 type Size = "sm" | "md" | "lg" | "icon";
@@ -12,6 +14,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
   loading?: boolean;
   icon?: React.ReactNode;
+  /** Keep this button usable while the subscription lock is on (export, print, renew, view). */
+  allowWhenReadOnly?: boolean;
 }
 
 const VARIANT_STYLES: Record<Variant, string> = {
@@ -31,11 +35,21 @@ const SIZE_STYLES: Record<Size, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", loading, icon, disabled, children, ...props }, ref) => {
+  ({ className, variant = "primary", size = "md", loading, icon, disabled, allowWhenReadOnly = false, children, title, ...props }, ref) => {
+    const { readOnly } = useAccessMode();
+    // Icon-only "ghost" buttons are how this app renders read actions (View,
+    // navigate-to-ledger, dismiss) — those must keep working even locked, so
+    // the subscription lock only ever disables non-ghost (i.e. mutating)
+    // buttons. Row-level Edit/Delete/Toggle icons are still ghost-variant
+    // Buttons under the hood, so they're additionally hidden entirely by
+    // RowActions.tsx rather than relying on this disable-only behavior.
+    const locked = readOnly && !allowWhenReadOnly && variant !== "ghost";
+
     return (
       <button
         ref={ref}
-        disabled={disabled || loading}
+        disabled={disabled || loading || locked}
+        title={locked ? READ_ONLY_MESSAGE : title}
         className={cn(
           "inline-flex items-center justify-center rounded-lg font-medium transition-colors duration-150",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
@@ -46,7 +60,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {loading ? <FiLoader className="h-4 w-4 animate-spin" /> : icon}
+        {loading ? <FiLoader className="h-4 w-4 animate-spin" /> : locked ? <FiLock className="h-4 w-4" /> : icon}
         {children}
       </button>
     );

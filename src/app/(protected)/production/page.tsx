@@ -65,6 +65,7 @@ export default function ProductionPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ProductionEntry | null>(null);
   const [date, setDate] = useState(toDateInputValue(new Date()));
+  const [dateError, setDateError] = useState("");
   const [remark, setRemark] = useState("");
   const [rows, setRows] = useState<Row[]>([{ item: "", quantity: "" }]);
   const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
@@ -97,6 +98,7 @@ export default function ProductionPage() {
     setRemark("");
     setRows([{ item: "", quantity: "" }]);
     setRowErrors({});
+    setDateError("");
     setDialogOpen(true);
   };
 
@@ -112,6 +114,7 @@ export default function ProductionPage() {
       }))
     );
     setRowErrors({});
+    setDateError("");
     setDialogOpen(true);
   };
 
@@ -138,8 +141,14 @@ export default function ProductionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (savingRef.current) return;
+    const dateErr = date ? "" : "Production Date is required";
+    setDateError(dateErr);
     const { errors: fieldErrors, isValid, blank } = validateRows();
     setRowErrors(fieldErrors);
+    if (dateErr) {
+      toast.error(dateErr);
+      return;
+    }
     if (blank) {
       toast.warning("Add at least one item with quantity");
       return;
@@ -206,7 +215,11 @@ export default function ProductionPage() {
       await productionService.remove(deleteTarget._id);
       toast.success("Production entry deleted");
       setDeleteTarget(null);
-      refetch();
+      // Deleting the only item left on a page beyond the first would
+      // otherwise leave that page stale and empty — step back first so the
+      // refetch triggered by the page change loads the previous page instead.
+      if (productions.length === 1 && page > 1) setPage(page - 1);
+      else refetch();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -299,6 +312,7 @@ export default function ProductionPage() {
             <DatePicker
               label="Production Date"
               required
+              error={dateError}
               value={date}
               onChange={(v) => setDate(v)}
               wrapperClassName="flex-1"

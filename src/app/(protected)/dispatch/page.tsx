@@ -76,6 +76,7 @@ export default function DispatchPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<DispatchEntry | null>(null);
   const [date, setDate] = useState(toDateInputValue(new Date()));
+  const [dateError, setDateError] = useState("");
   const [dairy, setDairy] = useState("");
   const [vehicleNo, setVehicleNo] = useState("");
   const [driverName, setDriverName] = useState("");
@@ -101,6 +102,7 @@ export default function DispatchPage() {
     setRows([{ item: "", quantity: "" }]);
     setRowErrors({});
     setDairyError("");
+    setDateError("");
     setDialogOpen(true);
   };
 
@@ -120,6 +122,7 @@ export default function DispatchPage() {
     );
     setRowErrors({});
     setDairyError("");
+    setDateError("");
     setDialogOpen(true);
   };
 
@@ -162,11 +165,17 @@ export default function DispatchPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (savingRef.current) return;
+    const dateErr = date ? "" : "Dispatch Date is required";
+    setDateError(dateErr);
     const dairyErr = validateRequired(dairy, "Dairy");
     setDairyError(dairyErr || "");
     const { errors: fieldErrors, isValid, blank } = validateRows();
     setRowErrors(fieldErrors);
 
+    if (dateErr) {
+      toast.error(dateErr);
+      return;
+    }
     if (dairyErr) {
       toast.error(dairyErr);
       return;
@@ -322,7 +331,7 @@ export default function DispatchPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DatePicker label="Dispatch Date" required value={date} onChange={(v) => setDate(v)} />
+            <DatePicker label="Dispatch Date" required error={dateError} value={date} onChange={(v) => setDate(v)} />
             <Select
               label="Dairy"
               required

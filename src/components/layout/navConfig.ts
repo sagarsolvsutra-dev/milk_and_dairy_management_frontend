@@ -14,6 +14,7 @@ import {
   FiShoppingBag,
   FiList,
   FiMessageCircle,
+  FiCreditCard,
 } from "react-icons/fi";
 import type { IconType } from "react-icons";
 import type { Role } from "@/types";
@@ -80,6 +81,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Team & Roles", href: "/team", icon: FiUserCheck, roles: ["super_admin"] },
       { label: "Reports", href: "/reports", icon: FiBarChart2, roles: ["super_admin", "staff"], module: "reports" },
       { label: "My Reports", href: "/dairy/reports", icon: FiBarChart2, roles: ["dairy_user"] },
+      { label: "Subscription", href: "/subscription", icon: FiCreditCard, roles: ["super_admin"] },
     ],
   },
   {

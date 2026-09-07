@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { notificationService } from "@/services/meta.service";
 import { formatDateTime } from "@/lib/utils";
 import { ProfileDialog } from "./ProfileDialog";
+import PlanStatusIndicator from "@/components/PlanStatusIndicator";
 import type { Notification } from "@/types";
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
@@ -69,6 +70,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
       <div className="hidden lg:block" />
 
       <div className="flex items-center gap-2">
+        <PlanStatusIndicator variant="header" />
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setNotifOpen((v) => !v)}

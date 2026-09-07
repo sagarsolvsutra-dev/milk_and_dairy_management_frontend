@@ -20,6 +20,7 @@ import { inventoryService } from "@/services/inventory.service";
 import { itemService } from "@/services/item.service";
 import { dairyService } from "@/services/dairy.service";
 import { usePaginatedList } from "@/hooks/usePaginatedList";
+import { useAuth } from "@/hooks/useAuth";
 import { formatNumber, formatDate } from "@/lib/utils";
 import { validateRequired, runValidation } from "@/lib/validators";
 import type { StockItem, Item, Dairy } from "@/types";
@@ -50,6 +51,8 @@ type ReconciliationRow = {
 
 export default function InventoryPage() {
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canAdjust = hasPermission("inventory", "add");
   const [milkStock, setMilkStock] = useState(0);
   const [comparison, setComparison] = useState<{ dairy: { _id: string; name: string; code: string }; totalStock: number; itemCount: number }[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(true);
@@ -235,9 +238,11 @@ export default function InventoryPage() {
         title="Central Inventory Control"
         description="Admin-side stock across milk, items, and dairy allocations"
         actions={
-          <Button icon={<FiPlus className="h-4 w-4" />} onClick={openAdjustDialog}>
-            Adjust Stock
-          </Button>
+          canAdjust ? (
+            <Button icon={<FiPlus className="h-4 w-4" />} onClick={openAdjustDialog}>
+              Adjust Stock
+            </Button>
+          ) : undefined
         }
       />
 

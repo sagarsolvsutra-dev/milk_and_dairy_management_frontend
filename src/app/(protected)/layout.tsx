@@ -8,6 +8,10 @@ import { Topbar } from "@/components/layout/Topbar";
 import { AccessDenied } from "@/components/layout/AccessDenied";
 import { findNavItem } from "@/components/layout/navConfig";
 import { AppShellSkeleton } from "@/components/ui/Skeleton";
+import SubscriptionProvider from "@/components/SubscriptionProvider";
+import ReadOnlyBanner from "@/components/ReadOnlyBanner";
+import SubscriptionBanner from "@/components/SubscriptionBanner";
+import MaintenanceBanner from "@/components/MaintenanceBanner";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -42,9 +46,13 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+          <ReadOnlyBanner />
+          <SubscriptionBanner />
+          <MaintenanceBanner />
           {isDenied ? <AccessDenied /> : children}
         </main>
       </div>
+      <SubscriptionProvider />
     </div>
   );
 }

@@ -19,12 +19,17 @@ import { getErrorMessage } from "@/lib/api";
 import { dairyService } from "@/services/dairy.service";
 import { formatDate } from "@/lib/utils";
 import { validateMobile, validateLoginId, validateMinLength, runValidation } from "@/lib/validators";
+import { useAuth } from "@/hooks/useAuth";
 import type { Dairy } from "@/types";
 
 const emptyForm = { name: "", mobile: "", address: "", loginId: "", password: "" };
 
 export default function DairiesPage() {
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canAdd = hasPermission("dairy", "add");
+  const canEdit = hasPermission("dairy", "edit");
+  const canDelete = hasPermission("dairy", "delete");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const { items, total, pages, loading, refetch } = usePaginatedList<Dairy>("/dairies", { search, page });
@@ -172,10 +177,12 @@ export default function DairiesPage() {
       header: "Actions",
       accessor: (d) => (
         <RowActions>
-          <EditAction onClick={() => openEdit(d)} />
-          <ResetPasswordAction onClick={() => setResetTarget(d)} />
-          <ToggleStatusAction active={d.status === "active"} disabled={togglingId === d._id} onClick={() => handleToggleStatus(d)} />
-          <DeleteAction onClick={() => setDeleteTarget(d)} />
+          {canEdit && <EditAction onClick={() => openEdit(d)} />}
+          {canEdit && <ResetPasswordAction onClick={() => setResetTarget(d)} />}
+          {canEdit && (
+            <ToggleStatusAction active={d.status === "active"} disabled={togglingId === d._id} onClick={() => handleToggleStatus(d)} />
+          )}
+          {canDelete && <DeleteAction onClick={() => setDeleteTarget(d)} />}
         </RowActions>
       ),
     },
@@ -187,9 +194,11 @@ export default function DairiesPage() {
         title="Dairies / Branch"
         description="Manage unlimited dairy branches and their login access"
         actions={
-          <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
-            Add Dairy
-          </Button>
+          canAdd ? (
+            <Button icon={<FiPlus className="h-4 w-4" />} onClick={openCreate}>
+              Add Dairy
+            </Button>
+          ) : undefined
         }
       />
 

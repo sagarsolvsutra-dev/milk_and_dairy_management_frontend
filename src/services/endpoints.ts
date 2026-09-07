@@ -93,4 +93,7 @@ export const API_ENDPOINTS = {
   DASHBOARD_SUPER_ADMIN: "/dashboard/super-admin",
   DASHBOARD_DAIRY: "/dashboard/dairy",
   DASHBOARD_ANALYTICS: "/dashboard/analytics",
+
+  // Subscription (this app's own backend — not SolvSutra itself, see lib/subscriptionApi.ts)
+  SUBSCRIPTION_CONFIG: "/subscription-config",
 } as const;
