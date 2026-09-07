@@ -39,7 +39,16 @@ export default function SubscriptionProvider() {
         if (res.ok) {
           const json = await res.json();
           const d = json?.data;
-          if (d && d.accessStatus !== "not_configured") {
+          // `check_failed` means OUR backend couldn't reach SolvSutra (e.g. a
+          // deployed backend whose SOLVSUTRA_API_URL points at something it
+          // can't route to) — it is not a real verdict, just "we don't know."
+          // Publishing it as-is used to short-circuit here and skip the
+          // browser-direct fallback below entirely, even when THIS browser
+          // could reach SolvSutra fine — the subscription page's own fetch
+          // proved that by showing real plan data while this banner still
+          // said "could not contact SolvSutra." Only a genuine, conclusive
+          // answer should return early; an inconclusive one falls through.
+          if (d && d.accessStatus !== "not_configured" && d.accessStatus !== "check_failed") {
             publish({
               allowed: d.allowed !== false,
               accessStatus: d.accessStatus,
