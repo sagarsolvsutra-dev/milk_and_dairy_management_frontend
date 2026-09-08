@@ -50,6 +50,12 @@ export default function BillingPage() {
   const [paymentMode, setPaymentMode] = useState("Cash");
   const [gstEnabled, setGstEnabled] = useState(false);
   const [roundOff, setRoundOff] = useState("0");
+  // Blank means "paid in full" — the field defaults to matching grandTotal
+  // with zero extra clicks for the common Cash/UPI/Card case, but becomes a
+  // real amount-tendered input the moment a clerk types into it (needed for
+  // "Credit" — a walk-in customer paying nothing or only part of the bill).
+  const [paidAmount, setPaidAmount] = useState("");
+  const [paidAmountError, setPaidAmountError] = useState("");
   const [rows, setRows] = useState<Row[]>([{ ...emptyRow }]);
   const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
   const [mobileError, setMobileError] = useState("");
@@ -101,6 +107,8 @@ export default function BillingPage() {
   const subtotal = computedRows.reduce((sum, r) => sum + r.amount, 0);
   const gstAmount = gstEnabled ? Math.round(computedRows.reduce((sum, r) => sum + r.tax, 0) * 100) / 100 : 0;
   const grandTotal = subtotal + gstAmount + (Number(roundOff) || 0);
+  const effectivePaidAmount = paidAmount === "" ? grandTotal : Number(paidAmount) || 0;
+  const balanceDue = Math.max(0, grandTotal - effectivePaidAmount);
 
   const resetForm = () => {
     setCustomerName("");
@@ -108,6 +116,8 @@ export default function BillingPage() {
     setPaymentMode("Cash");
     setGstEnabled(false);
     setRoundOff("0");
+    setPaidAmount("");
+    setPaidAmountError("");
     setRows([{ ...emptyRow }]);
     setRowErrors({});
     setMobileError("");
@@ -140,6 +150,12 @@ export default function BillingPage() {
     const { errors: fieldErrors, isValid, blank } = validateRows();
     setRowErrors(fieldErrors);
 
+    const paidErr =
+      paidAmount !== "" && (Number(paidAmount) < 0 || Number(paidAmount) > grandTotal)
+        ? `Must be between ₹0 and ${formatCurrency(grandTotal)}`
+        : "";
+    setPaidAmountError(paidErr);
+
     if (mobileErr) {
       toast.error(mobileErr);
       return;
@@ -150,6 +166,10 @@ export default function BillingPage() {
     }
     if (!isValid) {
       toast.error("Please fix the highlighted rows");
+      return;
+    }
+    if (paidErr) {
+      toast.error(paidErr);
       return;
     }
     const validRows = rows.filter((r) => r.item && Number(r.quantity) > 0);
@@ -169,7 +189,7 @@ export default function BillingPage() {
         gstAmount,
         roundOff: Number(roundOff) || 0,
         paymentMode,
-        paidAmount: grandTotal,
+        paidAmount: effectivePaidAmount,
       });
       toast.success("Bill saved successfully");
       setSavedBill(res.data.data);
@@ -388,6 +408,23 @@ export default function BillingPage() {
               value={paymentMode}
               onChange={(e) => setPaymentMode(e.target.value)}
             />
+            <Input
+              label="Paid Amount"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder={grandTotal.toFixed(2)}
+              hint={paymentMode === "Credit" ? "Leave blank if nothing's been paid yet, or enter a part payment" : "Leave blank to record as paid in full"}
+              error={paidAmountError}
+              value={paidAmount}
+              onChange={(e) => setPaidAmount(e.target.value)}
+            />
+            {balanceDue > 0 && (
+              <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3.5 py-2 text-sm">
+                <span className="font-medium text-amber-700">Balance Due</span>
+                <span className="font-bold text-amber-700">{formatCurrency(balanceDue)}</span>
+              </div>
+            )}
           </div>
           <Button className="mt-4 w-full" onClick={handleSave} loading={saving}>
             Save & Print
@@ -423,6 +460,18 @@ export default function BillingPage() {
                 <span>Grand Total</span>
                 <span>{formatCurrency(savedBill.grandTotal)}</span>
               </div>
+              {savedBill.balance > 0 && (
+                <>
+                  <div className="mt-1 flex justify-between text-slate-500">
+                    <span>Paid</span>
+                    <span className="font-medium text-slate-800">{formatCurrency(savedBill.paidAmount)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-amber-700">
+                    <span>Balance Due</span>
+                    <span>{formatCurrency(savedBill.balance)}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-2">

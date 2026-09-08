@@ -35,12 +35,13 @@ const emptyForm = {
   minStockAlert: "0",
 };
 
-/** Splits a Unit's comma-separated `sizes` string ("100ml, 200ml, 500ml") into a clean list. */
+/** Splits a Unit's comma-separated `sizes` string ("100ml, 200ml, 500ml") into a clean, deduplicated list. */
 function parseSizes(sizes?: string): string[] {
-  return (sizes || "")
+  const list = (sizes || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+  return [...new Set(list)];
 }
 
 export default function ItemsPage() {
@@ -56,8 +57,11 @@ export default function ItemsPage() {
 
   const [units, setUnits] = useState<Unit[]>([]);
   const [gstSlabs, setGstSlabs] = useState<GstSlab[]>([]);
-  useEffect(() => {
+  const refreshUnits = () => {
     mastersDropdownService.listUnits().then((res) => setUnits(res.data.data.items)).catch(() => {});
+  };
+  useEffect(() => {
+    refreshUnits();
     mastersDropdownService.listGstSlabs().then((res) => setGstSlabs(res.data.data.items)).catch(() => {});
   }, []);
 
@@ -72,7 +76,11 @@ export default function ItemsPage() {
   // sizes configured (matches every item created before this feature).
   const selectedUnit = useMemo(() => units.find((u) => u._id === form.unit), [units, form.unit]);
   const sizeOptions = useMemo(() => parseSizes(selectedUnit?.sizes), [selectedUnit]);
-  const resolvedMilkUnit = selectedUnit?.sizeUnit || "KG";
+  // Only trust sizeUnit when the Unit actually has sizes to go with it —
+  // otherwise (e.g. an admin set a Size Measurement but never filled in
+  // Available Sizes) fall back to "KG" the same way a plain unit would,
+  // matching the Size picker's own visibility condition above.
+  const resolvedMilkUnit = sizeOptions.length > 0 ? selectedUnit?.sizeUnit || "KG" : "KG";
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -81,6 +89,7 @@ export default function ItemsPage() {
   const deletingRef = useRef(false);
 
   const openCreate = () => {
+    refreshUnits();
     setEditing(null);
     setForm(emptyForm);
     setErrors({});
@@ -88,6 +97,7 @@ export default function ItemsPage() {
   };
 
   const openEdit = (item: Item) => {
+    refreshUnits();
     setEditing(item);
     setForm({
       name: item.name,
@@ -308,6 +318,10 @@ export default function ItemsPage() {
                 ? "e.g. a 100ml bottle uses 95ml milk → enter 95"
                 : resolvedMilkUnit === "g"
                 ? "e.g. a 200g packet uses 180g milk → enter 180"
+                : resolvedMilkUnit === "L"
+                ? "e.g. a 1L item uses 0.95L milk → enter 0.95"
+                : resolvedMilkUnit === "kg"
+                ? "e.g. a 1kg item uses 0.9kg milk → enter 0.9"
                 : "e.g. 1 KG milk = 6 KG item → enter 0.166"
             }
             value={form.milkQtyPerUnit}

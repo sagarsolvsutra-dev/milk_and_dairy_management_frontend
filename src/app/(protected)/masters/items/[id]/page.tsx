@@ -114,7 +114,9 @@ export default function ItemDetailPage() {
       <PageHeader
         title={`${item.name} (${item.code})`}
         description={`${item.category || "Item"} · ${formatCurrency(item.defaultSellingPrice)} per ${
-          typeof item.unit === "object" && item.unit ? item.unit.shortCode : ""
+          typeof item.unit === "object" && item.unit
+            ? `${item.unit.shortCode}${item.unitSize ? ` (${item.unitSize})` : ""}`
+            : ""
         }`}
         actions={
           <Badge tone={item.isActive ? "success" : "neutral"}>{item.isActive ? "Active" : "Inactive"}</Badge>
