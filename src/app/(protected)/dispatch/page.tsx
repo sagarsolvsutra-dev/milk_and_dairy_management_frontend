@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { FiPlus, FiTrash2, FiTruck, FiBox } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiTruck, FiBox, FiDroplet } from "react-icons/fi";
 import { RowActions, ViewAction, EditAction, CancelAction } from "@/components/ui/RowActions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -25,6 +25,7 @@ import { dispatchService } from "@/services/dispatch.service";
 import { itemService } from "@/services/item.service";
 import { dairyService } from "@/services/dairy.service";
 import { inventoryService } from "@/services/inventory.service";
+import { productionService } from "@/services/production.service";
 import { formatDate, toDateInputValue } from "@/lib/utils";
 import { validateRequired } from "@/lib/validators";
 import { useAuth } from "@/hooks/useAuth";
@@ -67,10 +68,30 @@ export default function DispatchPage() {
       })
       .catch(() => {});
   };
+  // Same live milk-usage cards shown on Production Entry / Dashboard — dispatch
+  // itself never touches Milk Stock, so these are fetched once and don't need
+  // refreshing after a dispatch create/cancel.
+  const [availableMilk, setAvailableMilk] = useState<number | null>(null);
+  const [todayMilk, setTodayMilk] = useState<number | null>(null);
+  const [monthMilk, setMonthMilk] = useState<number | null>(null);
+
   useEffect(() => {
     itemService.listActive().then((res) => setItems(res.data.data.items)).catch(() => {});
     dairyService.listActive().then((res) => setDairies(res.data.data.items)).catch(() => {});
     refreshCentralStock();
+
+    inventoryService.getMilkStock().then((res) => setAvailableMilk(res.data.data.currentQty)).catch(() => {});
+    const now = new Date();
+    const todayStr = toDateInputValue(now);
+    const monthStartStr = toDateInputValue(new Date(now.getFullYear(), now.getMonth(), 1));
+    productionService
+      .list({ from: todayStr, to: todayStr, limit: 1 })
+      .then((res) => setTodayMilk(res.data.data.summary?.totalMilkConsumed ?? 0))
+      .catch(() => {});
+    productionService
+      .list({ from: monthStartStr, to: todayStr, limit: 1 })
+      .then((res) => setMonthMilk(res.data.data.summary?.totalMilkConsumed ?? 0))
+      .catch(() => {});
   }, []);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -294,9 +315,33 @@ export default function DispatchPage() {
         }
       />
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard label="Total Dispatches" value={summary?.count ?? 0} icon={<FiTruck className="h-5 w-5" />} tone="indigo" />
         <StatCard label="Total Items Dispatched" value={summary?.totalItemsDispatched ?? 0} icon={<FiBox className="h-5 w-5" />} tone="sky" />
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Milk Available Now"
+          value={availableMilk === null ? "…" : `${availableMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="sky"
+          className="ring-2 ring-sky-200 bg-gradient-to-br from-sky-50 to-white"
+        />
+        <StatCard
+          label="Today's Milk Used"
+          value={todayMilk === null ? "…" : `${todayMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="amber"
+          className="ring-2 ring-amber-200 bg-gradient-to-br from-amber-50 to-white"
+        />
+        <StatCard
+          label="This Month's Milk Used"
+          value={monthMilk === null ? "…" : `${monthMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="emerald"
+          className="ring-2 ring-emerald-200 bg-gradient-to-br from-emerald-50 to-white"
+        />
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-3">

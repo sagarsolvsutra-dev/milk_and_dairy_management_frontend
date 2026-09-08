@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FiPlus } from "react-icons/fi";
 import { RowActions, ViewAction, EditAction, ToggleStatusAction, DeleteAction } from "@/components/ui/RowActions";
@@ -28,11 +28,20 @@ const emptyForm = {
   name: "",
   category: "",
   unit: "",
+  unitSize: "",
   milkQtyPerUnit: "",
   defaultSellingPrice: "",
   gstSlab: "",
   minStockAlert: "0",
 };
+
+/** Splits a Unit's comma-separated `sizes` string ("100ml, 200ml, 500ml") into a clean list. */
+function parseSizes(sizes?: string): string[] {
+  return (sizes || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 export default function ItemsPage() {
   const toast = useToast();
@@ -56,6 +65,14 @@ export default function ItemsPage() {
   const [editing, setEditing] = useState<Item | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // The chosen Unit drives two things: what sizes (if any) can be picked for
+  // this item, and what measurement the recipe's milk-quantity input uses —
+  // ml for a Bottle, g/kg for a Packet, or "KG" for a plain unit with no
+  // sizes configured (matches every item created before this feature).
+  const selectedUnit = useMemo(() => units.find((u) => u._id === form.unit), [units, form.unit]);
+  const sizeOptions = useMemo(() => parseSizes(selectedUnit?.sizes), [selectedUnit]);
+  const resolvedMilkUnit = selectedUnit?.sizeUnit || "KG";
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -76,6 +93,7 @@ export default function ItemsPage() {
       name: item.name,
       category: item.category || "",
       unit: typeof item.unit === "object" && item.unit ? item.unit._id : (item.unit as string) || "",
+      unitSize: item.unitSize || "",
       milkQtyPerUnit: String(item.recipe?.milkQtyPerUnit ?? ""),
       defaultSellingPrice: String(item.defaultSellingPrice ?? ""),
       gstSlab: typeof item.gstSlab === "object" && item.gstSlab ? item.gstSlab._id : (item.gstSlab as string) || "",
@@ -89,6 +107,7 @@ export default function ItemsPage() {
     runValidation({
       name: () => validateMinLength(form.name.trim(), 2, "Item name"),
       unit: () => validateRequired(form.unit, "Unit"),
+      unitSize: () => (sizeOptions.length > 0 ? validateRequired(form.unitSize, "Size") : undefined),
       milkQtyPerUnit: () => validateNonNegativeNumber(form.milkQtyPerUnit, "Recipe milk quantity"),
       defaultSellingPrice: () => validateNonNegativeNumber(form.defaultSellingPrice, "Selling price"),
       minStockAlert: () => validateNonNegativeNumber(form.minStockAlert, "Minimum stock alert"),
@@ -108,7 +127,8 @@ export default function ItemsPage() {
         name: form.name,
         category: form.category,
         unit: form.unit,
-        recipe: { milkQtyPerUnit: Number(form.milkQtyPerUnit) || 0, milkUnit: "KG" },
+        unitSize: sizeOptions.length > 0 ? form.unitSize : "",
+        recipe: { milkQtyPerUnit: Number(form.milkQtyPerUnit) || 0, milkUnit: resolvedMilkUnit },
         defaultSellingPrice: Number(form.defaultSellingPrice) || 0,
         gstSlab: form.gstSlab || null,
         minStockAlert: Number(form.minStockAlert) || 0,
@@ -165,8 +185,12 @@ export default function ItemsPage() {
     { header: "Code", accessor: (i) => <span className="font-mono text-xs text-slate-500">{i.code}</span> },
     { header: "Name", primary: true, accessor: (i) => <span className="font-medium text-slate-900">{i.name}</span> },
     { header: "Category", accessor: (i) => i.category || "-" },
-    { header: "Unit", accessor: (i) => (typeof i.unit === "object" && i.unit ? i.unit.shortCode : "-") },
-    { header: "Recipe (Milk/Unit)", accessor: (i) => `${i.recipe?.milkQtyPerUnit ?? 0} KG` },
+    {
+      header: "Unit",
+      accessor: (i) =>
+        typeof i.unit === "object" && i.unit ? `${i.unit.shortCode}${i.unitSize ? ` (${i.unitSize})` : ""}` : "-",
+    },
+    { header: "Recipe (Milk/Unit)", accessor: (i) => `${i.recipe?.milkQtyPerUnit ?? 0} ${i.recipe?.milkUnit || "KG"}` },
     { header: "Selling Price", accessor: (i) => formatCurrency(i.defaultSellingPrice) },
     { header: "Min. Stock", accessor: (i) => i.minStockAlert },
     {
@@ -253,16 +277,39 @@ export default function ItemsPage() {
             error={errors.unit}
             options={units.map((u) => ({ label: `${u.name} (${u.shortCode})`, value: u._id }))}
             value={form.unit}
-            onChange={(e) => setForm({ ...form, unit: e.target.value })}
+            onChange={(e) => {
+              const nextUnit = units.find((u) => u._id === e.target.value);
+              const nextSizes = parseSizes(nextUnit?.sizes);
+              // A size chosen for the old unit rarely makes sense for the new
+              // one (e.g. switching from Bottle to Packet) — drop it rather
+              // than silently carry over a mismatched size label.
+              setForm({ ...form, unit: e.target.value, unitSize: nextSizes.includes(form.unitSize) ? form.unitSize : "" });
+            }}
           />
+          {sizeOptions.length > 0 && (
+            <Select
+              label="Size"
+              required
+              error={errors.unitSize}
+              options={sizeOptions.map((s) => ({ label: s, value: s }))}
+              value={form.unitSize}
+              onChange={(e) => setForm({ ...form, unitSize: e.target.value })}
+            />
+          )}
           <Input
-            label="Recipe — Milk (KG) per 1 Unit"
+            label={`Recipe — Milk (${resolvedMilkUnit}) per 1 Unit`}
             type="number"
             step="0.01"
             min="0"
             required
             error={errors.milkQtyPerUnit}
-            hint="e.g. 1 KG milk = 6 KG item → enter 0.166"
+            hint={
+              resolvedMilkUnit === "ml"
+                ? "e.g. a 100ml bottle uses 95ml milk → enter 95"
+                : resolvedMilkUnit === "g"
+                ? "e.g. a 200g packet uses 180g milk → enter 180"
+                : "e.g. 1 KG milk = 6 KG item → enter 0.166"
+            }
             value={form.milkQtyPerUnit}
             onChange={(e) => setForm({ ...form, milkQtyPerUnit: e.target.value })}
           />

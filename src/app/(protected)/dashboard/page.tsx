@@ -11,7 +11,8 @@ import { PageHeaderSkeleton, StatCardsSkeleton, CardsGridSkeleton } from "@/comp
 import { useToast } from "@/components/ui/Toast";
 import { getErrorMessage } from "@/lib/api";
 import { dashboardService } from "@/services/meta.service";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { productionService } from "@/services/production.service";
+import { formatCurrency, formatNumber, toDateInputValue } from "@/lib/utils";
 import { AnalyticsSection } from "./AnalyticsSection";
 
 type DashboardData = {
@@ -32,12 +33,30 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Same live milk-usage cards shown on Production Entry — fetched
+  // separately since they're fixed periods (today / month-to-date), not
+  // part of the main dashboard aggregate.
+  const [todayMilk, setTodayMilk] = useState<number | null>(null);
+  const [monthMilk, setMonthMilk] = useState<number | null>(null);
+
   useEffect(() => {
     dashboardService
       .getSuperAdmin()
       .then((res) => setData(res.data.data))
       .catch((err) => toast.error(getErrorMessage(err)))
       .finally(() => setLoading(false));
+
+    const now = new Date();
+    const todayStr = toDateInputValue(now);
+    const monthStartStr = toDateInputValue(new Date(now.getFullYear(), now.getMonth(), 1));
+    productionService
+      .list({ from: todayStr, to: todayStr, limit: 1 })
+      .then((res) => setTodayMilk(res.data.data.summary?.totalMilkConsumed ?? 0))
+      .catch(() => {});
+    productionService
+      .list({ from: monthStartStr, to: todayStr, limit: 1 })
+      .then((res) => setMonthMilk(res.data.data.summary?.totalMilkConsumed ?? 0))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -82,7 +101,7 @@ export default function DashboardPage() {
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Today's Milk Purchase"
-          value={`${formatNumber(data.todayMilkPurchaseQty)} KG`}
+          value={`${formatNumber(data.todayMilkPurchaseQty)} Litre`}
           icon={<FiDroplet className="h-5 w-5" />}
           tone="sky"
         />
@@ -92,12 +111,29 @@ export default function DashboardPage() {
           icon={<FiDollarSign className="h-5 w-5" />}
           tone="emerald"
         />
-        <StatCard label="Current Milk Stock" value={`${formatNumber(data.currentMilkStock)} KG`} icon={<FiDroplet className="h-5 w-5" />} tone="indigo" />
+        <StatCard label="Current Milk Stock" value={`${formatNumber(data.currentMilkStock)} Litre`} icon={<FiDroplet className="h-5 w-5" />} tone="indigo" />
         <StatCard
           label="Active Dairies"
           value={`${data.activeDairies} / ${data.totalDairies}`}
           icon={<FiHome className="h-5 w-5" />}
           tone="amber"
+        />
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <StatCard
+          label="Today's Milk Used"
+          value={todayMilk === null ? "…" : `${todayMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="amber"
+          className="ring-2 ring-amber-200 bg-gradient-to-br from-amber-50 to-white"
+        />
+        <StatCard
+          label="This Month's Milk Used"
+          value={monthMilk === null ? "…" : `${monthMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="emerald"
+          className="ring-2 ring-emerald-200 bg-gradient-to-br from-emerald-50 to-white"
         />
       </div>
 

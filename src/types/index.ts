@@ -28,7 +28,16 @@ export type Paginated<T> = {
 
 export type City = { _id: string; name: string; state?: string; isActive: boolean };
 
-export type Unit = { _id: string; name: string; shortCode: string; isActive: boolean };
+export type Unit = {
+  _id: string;
+  name: string;
+  shortCode: string;
+  /** Measurement system for `sizes` below — set only on a packaging unit like Bottle/Packet. */
+  sizeUnit?: "" | "ml" | "L" | "g" | "kg";
+  /** Comma-separated size labels, e.g. "100ml, 200ml, 500ml" — only meaningful when sizeUnit is set. */
+  sizes?: string;
+  isActive: boolean;
+};
 
 export type GstSlab = { _id: string; percent: number; label?: string; isActive: boolean };
 
@@ -78,6 +87,8 @@ export type Item = {
   code: string;
   category?: string;
   unit: Unit | string | null;
+  /** The chosen size label from the unit's `sizes` list, e.g. "100ml" — blank if the unit has no sizes. */
+  unitSize?: string;
   recipe: { milkQtyPerUnit: number; milkUnit: string };
   defaultSellingPrice: number;
   gstSlab?: GstSlab | string | null;

@@ -23,7 +23,7 @@ import { getErrorMessage } from "@/lib/api";
 import { productionService } from "@/services/production.service";
 import { itemService } from "@/services/item.service";
 import { inventoryService } from "@/services/inventory.service";
-import { formatDate, toDateInputValue } from "@/lib/utils";
+import { formatDate, toDateInputValue, milkUnitFactor } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import type { ProductionEntry, Item } from "@/types";
 
@@ -57,9 +57,33 @@ export default function ProductionPage() {
       .then((res) => setAvailableMilk(res.data.data.currentQty))
       .catch(() => {});
   };
+
+  // Today's / this-month's milk usage — separate from the `summary` above,
+  // which reflects whatever date range the list is currently filtered to.
+  // These two always show live, fixed periods regardless of that filter.
+  const [todayMilk, setTodayMilk] = useState<number | null>(null);
+  const [monthMilk, setMonthMilk] = useState<number | null>(null);
+  const refreshMilkPeriods = () => {
+    const now = new Date();
+    const todayStr = toDateInputValue(now);
+    const monthStartStr = toDateInputValue(new Date(now.getFullYear(), now.getMonth(), 1));
+    productionService
+      .list({ from: todayStr, to: todayStr, limit: 1 })
+      .then((res) => setTodayMilk(res.data.data.summary?.totalMilkConsumed ?? 0))
+      .catch(() => {});
+    productionService
+      .list({ from: monthStartStr, to: todayStr, limit: 1 })
+      .then((res) => setMonthMilk(res.data.data.summary?.totalMilkConsumed ?? 0))
+      .catch(() => {});
+  };
+  const refreshMilkSummary = () => {
+    refreshMilkStock();
+    refreshMilkPeriods();
+  };
+
   useEffect(() => {
     itemService.listActive().then((res) => setItems(res.data.data.items)).catch(() => {});
-    refreshMilkStock();
+    refreshMilkSummary();
   }, []);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -86,7 +110,7 @@ export default function ProductionPage() {
       rows.reduce((sum, r) => {
         const item = itemMap[r.item];
         const qty = Number(r.quantity) || 0;
-        return sum + qty * (item?.recipe.milkQtyPerUnit || 0);
+        return sum + qty * (item?.recipe.milkQtyPerUnit || 0) * milkUnitFactor(item?.recipe.milkUnit);
       }, 0),
     [rows, itemMap]
   );
@@ -160,7 +184,7 @@ export default function ProductionPage() {
     // Only enforced on create — editing an existing batch changes what
     // "available" means (some milk is already committed to it).
     if (!editTarget && availableMilk !== null && totalMilk > availableMilk) {
-      toast.error(`Only ${availableMilk.toFixed(2)} KG milk is available — this batch needs ${totalMilk.toFixed(2)} KG`);
+      toast.error(`Only ${availableMilk.toFixed(2)} Litre milk is available — this batch needs ${totalMilk.toFixed(2)} Litre`);
       return;
     }
     const validRows = rows.filter((r) => r.item && Number(r.quantity) > 0);
@@ -181,7 +205,7 @@ export default function ProductionPage() {
       }
       setDialogOpen(false);
       refetch();
-      refreshMilkStock();
+      refreshMilkSummary();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -199,6 +223,7 @@ export default function ProductionPage() {
       toast.success("Production entry cancelled");
       setCancelTarget(null);
       refetch();
+      refreshMilkSummary();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -220,6 +245,7 @@ export default function ProductionPage() {
       // refetch triggered by the page change loads the previous page instead.
       if (productions.length === 1 && page > 1) setPage(page - 1);
       else refetch();
+      refreshMilkSummary();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -240,7 +266,7 @@ export default function ProductionPage() {
         </span>
       ),
     },
-    { header: "Milk Consumed", accessor: (p) => `${p.totalMilkConsumed.toFixed(2)} KG` },
+    { header: "Milk Consumed", accessor: (p) => `${p.totalMilkConsumed.toFixed(2)} Litre` },
     {
       header: "Status",
       accessor: (p) => <Badge tone={p.status === "active" ? "success" : "danger"}>{p.status === "active" ? "Active" : "Cancelled"}</Badge>,
@@ -272,9 +298,33 @@ export default function ProductionPage() {
         }
       />
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard label="Total Batches" value={summary?.count ?? 0} icon={<FiPackage className="h-5 w-5" />} tone="indigo" />
-        <StatCard label="Total Milk Consumed" value={`${(summary?.totalMilkConsumed ?? 0).toFixed(2)} KG`} icon={<FiDroplet className="h-5 w-5" />} tone="sky" />
+        <StatCard label="Total Milk Consumed" value={`${(summary?.totalMilkConsumed ?? 0).toFixed(2)} Litre`} icon={<FiDroplet className="h-5 w-5" />} tone="sky" />
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Milk Available Now"
+          value={availableMilk === null ? "…" : `${availableMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="sky"
+          className="ring-2 ring-sky-200 bg-gradient-to-br from-sky-50 to-white"
+        />
+        <StatCard
+          label="Today's Milk Used"
+          value={todayMilk === null ? "…" : `${todayMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="amber"
+          className="ring-2 ring-amber-200 bg-gradient-to-br from-amber-50 to-white"
+        />
+        <StatCard
+          label="This Month's Milk Used"
+          value={monthMilk === null ? "…" : `${monthMilk.toFixed(2)} Litre`}
+          icon={<FiDroplet className="h-5 w-5" />}
+          tone="emerald"
+          className="ring-2 ring-emerald-200 bg-gradient-to-br from-emerald-50 to-white"
+        />
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
@@ -320,7 +370,7 @@ export default function ProductionPage() {
             <div className="rounded-lg border border-sky-100 bg-sky-50 px-4 py-2">
               <p className="text-xs font-medium uppercase tracking-wide text-sky-500">Milk Available</p>
               <p className="text-xl font-bold text-sky-700">
-                {availableMilk === null ? "…" : `${availableMilk.toFixed(2)} KG`}
+                {availableMilk === null ? "…" : `${availableMilk.toFixed(2)} Litre`}
               </p>
             </div>
           </div>
@@ -335,7 +385,7 @@ export default function ProductionPage() {
             </div>
             {rows.map((row, i) => {
               const item = itemMap[row.item];
-              const consumed = item ? (Number(row.quantity) || 0) * item.recipe.milkQtyPerUnit : 0;
+              const consumed = item ? (Number(row.quantity) || 0) * item.recipe.milkQtyPerUnit * milkUnitFactor(item.recipe.milkUnit) : 0;
               return (
                 <div key={i} className="flex items-start gap-2">
                   <Select
@@ -355,7 +405,7 @@ export default function ProductionPage() {
                     value={row.quantity}
                     onChange={(e) => updateRow(i, { quantity: e.target.value })}
                   />
-                  <div className="mt-2.5 w-24 shrink-0 text-xs text-slate-400">{consumed.toFixed(2)} KG milk</div>
+                  <div className="mt-2.5 w-24 shrink-0 text-xs text-slate-400">{consumed.toFixed(2)} L milk</div>
                   <Button
                     type="button"
                     variant="ghost"
@@ -381,10 +431,10 @@ export default function ProductionPage() {
             return (
               <div className={`rounded-lg p-3 ${overLimit ? "bg-red-50" : "bg-slate-50"}`}>
                 <p className={`text-xs ${overLimit ? "text-red-500" : "text-slate-400"}`}>Total Milk to be Consumed</p>
-                <p className={`text-lg font-semibold ${overLimit ? "text-red-600" : "text-slate-800"}`}>{totalMilk.toFixed(2)} KG</p>
+                <p className={`text-lg font-semibold ${overLimit ? "text-red-600" : "text-slate-800"}`}>{totalMilk.toFixed(2)} Litre</p>
                 {overLimit && (
                   <p className="mt-1 text-xs font-medium text-red-500">
-                    Exceeds available milk by {(totalMilk - (availableMilk ?? 0)).toFixed(2)} KG
+                    Exceeds available milk by {(totalMilk - (availableMilk ?? 0)).toFixed(2)} Litre
                   </p>
                 )}
               </div>
@@ -402,12 +452,12 @@ export default function ProductionPage() {
                 <div key={i} className="flex items-center justify-between px-3 py-2">
                   <span>{typeof row.item === "object" && row.item ? row.item.name : "Deleted item"}</span>
                   <span className="text-slate-500">
-                    {row.quantity} units — {row.milkConsumed.toFixed(2)} KG milk
+                    {row.quantity} units — {row.milkConsumed.toFixed(2)} L milk
                   </span>
                 </div>
               ))}
             </div>
-            <p className="font-semibold">Total Milk Consumed: {viewing.totalMilkConsumed.toFixed(2)} KG</p>
+            <p className="font-semibold">Total Milk Consumed: {viewing.totalMilkConsumed.toFixed(2)} Litre</p>
           </div>
         )}
       </Dialog>

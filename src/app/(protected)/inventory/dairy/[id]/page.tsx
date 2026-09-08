@@ -147,7 +147,10 @@ export default function DairyDetailPage() {
     { header: "Date", accessor: (b) => formatDate(b.date) },
     { header: "Bill No.", accessor: (b) => <span className="font-mono text-xs">{b.billNo}</span> },
     { header: "Customer", accessor: (b) => b.customerName || "Walk-in" },
-    { header: "Items", accessor: (b) => b.items.length },
+    {
+      header: "Items",
+      accessor: (b) => b.items.map((i) => `${typeof i.item === "object" && i.item ? i.item.name : "-"} (${i.quantity})`).join(", "),
+    },
     { header: "Grand Total", accessor: (b) => formatCurrency(b.grandTotal) },
     {
       header: "Status",

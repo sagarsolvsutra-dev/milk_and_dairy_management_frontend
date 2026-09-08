@@ -13,6 +13,7 @@ export function StatCard({
   tone = "indigo",
   hint,
   hintTone = "neutral",
+  className,
 }: {
   label: string;
   value: React.ReactNode;
@@ -20,6 +21,8 @@ export function StatCard({
   tone?: "indigo" | "emerald" | "amber" | "sky" | "red";
   hint?: React.ReactNode;
   hintTone?: "neutral" | "emerald" | "red";
+  /** Extra classes on the outer card — e.g. a ring/gradient to make a card stand out from the rest. */
+  className?: string;
 }) {
   const toneStyles = {
     indigo: "bg-indigo-50 text-indigo-600",
@@ -36,7 +39,7 @@ export function StatCard({
   }[hintTone];
 
   return (
-    <Card className="flex items-center gap-4">
+    <Card className={cn("flex items-center gap-4", className)}>
       {icon && <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-lg", toneStyles)}>{icon}</div>}
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>

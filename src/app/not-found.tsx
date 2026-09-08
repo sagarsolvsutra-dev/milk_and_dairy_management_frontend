@@ -55,12 +55,8 @@ export default function NotFound() {
             404
           </p>
 
-          <h2 className="mt-3 text-lg font-semibold text-slate-800">
-            પાનું મળ્યું નથી <span className="font-normal text-slate-400">(Page Not Found)</span>
-          </h2>
+          <h2 className="mt-3 text-lg font-semibold text-slate-800">Page Not Found</h2>
           <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-            આ પાનું અસ્તિત્વમાં નથી અથવા ખસેડવામાં આવ્યું છે.
-            <br />
             The page you&apos;re looking for doesn&apos;t exist or has moved.
           </p>
 

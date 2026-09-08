@@ -31,7 +31,7 @@ const emptyForm = {
   date: toDateInputValue(new Date()),
   vendor: "",
   quantity: "",
-  unit: "KG",
+  unit: "Litre",
   rate: "",
   fatDegree: "",
   otherCharges: "0",
@@ -364,12 +364,7 @@ export default function PurchasesPage() {
             value={form.vendor}
             onChange={(e) => setForm({ ...form, vendor: e.target.value })}
           />
-          <Select
-            label="Unit"
-            options={[{ label: "KG", value: "KG" }, { label: "Litre", value: "Litre" }]}
-            value={form.unit}
-            onChange={(e) => setForm({ ...form, unit: e.target.value })}
-          />
+          <Input label="Unit" value="Litre" disabled hint="Milk is always purchased by volume" />
           <Input
             label="Quantity"
             type="number"
@@ -503,11 +498,11 @@ export default function PurchasesPage() {
             value={editForm.vendor}
             onChange={(e) => setEditForm({ ...editForm, vendor: e.target.value })}
           />
-          <Select
+          <Input
             label="Unit"
-            options={[{ label: "KG", value: "KG" }, { label: "Litre", value: "Litre" }]}
             value={editForm.unit}
-            onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
+            disabled
+            hint={editForm.unit === "KG" ? "Historical entry — unit can't be changed" : "Milk is always purchased by volume"}
           />
           <Input
             label="Quantity"

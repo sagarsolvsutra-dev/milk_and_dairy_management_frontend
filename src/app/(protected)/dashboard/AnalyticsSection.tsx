@@ -55,7 +55,7 @@ export function AnalyticsSection() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="_id" tick={AXIS_STYLE} tickFormatter={(v) => String(v).slice(5)} />
                 <YAxis tick={AXIS_STYLE} width={40} />
-                <Tooltip formatter={(v) => [`${formatNumber(Number(v))} KG`, "Qty"]} labelFormatter={(l) => `Date: ${l}`} />
+                <Tooltip formatter={(v) => [`${formatNumber(Number(v))} Litre`, "Qty"]} labelFormatter={(l) => `Date: ${l}`} />
                 <Line type="monotone" dataKey="totalQty" stroke="#0284c7" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>

@@ -23,10 +23,31 @@ export default function UnitsPage() {
           validate: (v) => validateMinLength(v.trim(), 2, "Unit name"),
         },
         { name: "shortCode", label: "Short Code", required: true, placeholder: "e.g. KG" },
+        {
+          name: "sizeUnit",
+          label: "Size Measurement",
+          type: "select",
+          options: [
+            { label: "None (no sizes)", value: "" },
+            { label: "Millilitres (ml)", value: "ml" },
+            { label: "Litres (L)", value: "L" },
+            { label: "Grams (g)", value: "g" },
+            { label: "Kilograms (kg)", value: "kg" },
+          ],
+          hint: "Set this for a packaging unit like Bottle or Packet — it's what lets an Item pick a size below.",
+        },
+        {
+          name: "sizes",
+          label: "Available Sizes",
+          span: 2,
+          placeholder: "e.g. 100ml, 200ml, 500ml",
+          hint: "Comma-separated. Only used when a Size Measurement is set above.",
+        },
       ]}
       displayColumns={[
         { header: "Name", render: (row) => <span className="font-medium text-slate-900">{String(row.name)}</span> },
         { header: "Short Code", render: (row) => String(row.shortCode) },
+        { header: "Sizes", render: (row) => (row.sizes ? String(row.sizes) : "-") },
       ]}
     />
   );

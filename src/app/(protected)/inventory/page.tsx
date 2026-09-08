@@ -247,7 +247,7 @@ export default function InventoryPage() {
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Current Milk Stock" value={`${formatNumber(milkStock)} KG`} icon={<FiDroplet className="h-5 w-5" />} tone="sky" />
+        <StatCard label="Current Milk Stock" value={`${formatNumber(milkStock)} Litre`} icon={<FiDroplet className="h-5 w-5" />} tone="sky" />
         <StatCard label="Item SKUs in Stock" value={stockTotal} icon={<FiPackage className="h-5 w-5" />} tone="indigo" />
         <StatCard label="Low Stock Items" value={stockSummary?.lowStockCount ?? 0} tone="red" />
       </div>

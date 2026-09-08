@@ -213,7 +213,7 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
       { header: "Date", accessor: (r) => formatDate(r.date) },
       { header: "Batch No.", accessor: (r) => r.batchNo },
       { header: "Items", accessor: (r) => r.items?.length ?? 0 },
-      { header: "Milk Consumed", accessor: (r) => `${(r.totalMilkConsumed ?? 0).toFixed(2)} KG` },
+      { header: "Milk Consumed", accessor: (r) => `${(r.totalMilkConsumed ?? 0).toFixed(2)} Litre` },
     ];
     return (
       <>
@@ -229,7 +229,7 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
         <Table columns={columns} data={d?.entries || []} keyField={(r) => r._id} loading={loading} />
         {d && (
           <div className="border-t border-slate-100 px-4 py-3 text-right text-sm">
-            Total Milk Consumed: <strong>{(d.totalMilkConsumed ?? 0).toFixed(2)} KG</strong>
+            Total Milk Consumed: <strong>{(d.totalMilkConsumed ?? 0).toFixed(2)} Litre</strong>
           </div>
         )}
       </>
@@ -364,7 +364,7 @@ function ReportBody({ tab, data, loading }: { tab: ReportKey; data: unknown; loa
       { header: "Period", accessor: (r) => r.period },
       { header: "Milk Purchased Qty", accessor: (r) => r.qty },
       { header: "Purchase Amount", accessor: (r) => formatCurrency(r.amount) },
-      { header: "Milk Consumed", accessor: (r) => `${r.milkConsumed.toFixed(2)} KG` },
+      { header: "Milk Consumed", accessor: (r) => `${r.milkConsumed.toFixed(2)} Litre` },
       { header: "Sales", accessor: (r) => formatCurrency(r.sales) },
     ];
 

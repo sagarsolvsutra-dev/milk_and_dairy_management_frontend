@@ -41,13 +41,36 @@ type Payment = {
   maintenancePlanId?: { name?: string };
 };
 
-function loadRazorpayScript() {
-  if (document.getElementById("razorpay-checkout-js")) return;
-  const script = document.createElement("script");
-  script.id = "razorpay-checkout-js";
-  script.src = "https://checkout.razorpay.com/v1/checkout.js";
-  script.async = true;
-  document.body.appendChild(script);
+// Razorpay's checkout.js is very heavy — once it initializes it prefetches
+// hundreds of chunk files (every payment method's UI bundle, wallet SDKs,
+// analytics). Loading it eagerly on every visit to this page (most of which
+// are just "check my plan status", not an actual payment) was flooding the
+// network tab on every load. Load it lazily, on demand, right before it's
+// actually needed — and only once, via a memoized promise so concurrent/
+// repeated renew clicks don't each inject their own script tag.
+let razorpayScriptPromise: Promise<void> | null = null;
+function loadRazorpayScript(): Promise<void> {
+  if (typeof window !== "undefined" && window.Razorpay) return Promise.resolve();
+  if (razorpayScriptPromise) return razorpayScriptPromise;
+
+  razorpayScriptPromise = new Promise((resolve) => {
+    const existing = document.getElementById("razorpay-checkout-js");
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => resolve(), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "razorpay-checkout-js";
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    // Fail open either way — callers already fall back to the testMode/
+    // verify-immediately path when `window.Razorpay` never shows up.
+    script.onload = () => resolve();
+    script.onerror = () => resolve();
+    document.body.appendChild(script);
+  });
+  return razorpayScriptPromise;
 }
 
 export default function SubscriptionPage() {
@@ -68,7 +91,6 @@ export default function SubscriptionPage() {
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    loadRazorpayScript();
     // Credentials live on the backend, so a browser that has never been set up
     // still works — pull them down before deciding to show the setup form.
     (async () => {
@@ -149,6 +171,7 @@ export default function SubscriptionPage() {
     setRenewing(true);
     try {
       const order = await subscriptionApi.createRenewalOrder(planId, subscription?._id);
+      await loadRazorpayScript();
 
       // Test mode (no Razorpay configured on SolvSutra, or the script failed to load) — verify immediately.
       if (order.testMode || !window.Razorpay) {
@@ -176,6 +199,13 @@ export default function SubscriptionPage() {
         description: `Renew ${order.plan?.name} Plan`,
         order_id: order.orderId,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          // Razorpay only fires `modal.ondismiss` when the user closes the
+          // checkout without paying — a successful payment never triggers it,
+          // so this handler is the only place that can clear the loading
+          // state for the success path. Missing this left the button stuck
+          // spinning forever after a real payment (the renewal itself still
+          // went through — only the UI state was wrong), which tempted
+          // reloading and re-clicking Renew, risking a duplicate charge.
           try {
             const verify = await subscriptionApi.verifyRenewalPayment({
               paymentId: order.paymentId,
@@ -190,6 +220,8 @@ export default function SubscriptionPage() {
             }
           } catch (err) {
             toast.error("Payment verification failed: " + getErrorMessage(err));
+          } finally {
+            setRenewing(false);
           }
         },
         theme: { color: "#4f46e5" },
@@ -207,6 +239,7 @@ export default function SubscriptionPage() {
     setRenewingMaintenance(true);
     try {
       const order = await subscriptionApi.createMaintenanceRenewalOrder(maintenancePlanId, maintenance?._id);
+      await loadRazorpayScript();
 
       if (order.testMode || !window.Razorpay) {
         const verify = await subscriptionApi.verifyMaintenanceRenewalPayment({
@@ -232,6 +265,9 @@ export default function SubscriptionPage() {
         description: `Maintenance Plan - ${order.plan?.name}`,
         order_id: order.orderId,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          // Same reasoning as handleRenew above: `modal.ondismiss` never
+          // fires for a successful payment, so this is the only place that
+          // clears the loading state once verification finishes.
           try {
             const verify = await subscriptionApi.verifyMaintenanceRenewalPayment({
               paymentId: order.paymentId,
@@ -246,6 +282,8 @@ export default function SubscriptionPage() {
             }
           } catch (err) {
             toast.error("Payment verification failed: " + getErrorMessage(err));
+          } finally {
+            setRenewingMaintenance(false);
           }
         },
         theme: { color: "#0d9488" },
